@@ -1,0 +1,101 @@
+SPDX-License-Identifier: MIT AND LicenseRef-Palimpsest-0.8
+
+1000Langs - Super-Parallel Corpus Crawler
+Copyright (c) 2018-2025 Ehsaneddin Asgari and Contributors
+
+This software is dual-licensed under the MIT License and the Palimpsest
+License v0.8. You may choose to use this software under either license.
+
+================================================================================
+MIT LICENSE
+================================================================================
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+================================================================================
+PALIMPSEST LICENSE v0.8
+================================================================================
+
+The Palimpsest License is a supplement to the MIT License that adds the
+following provisions:
+
+1. ATTRIBUTION REQUIREMENT
+
+   Any use, reproduction, or distribution of this software must include
+   clear attribution to the original authors. Attribution must include:
+   - The project name "1000Langs"
+   - A link to the source repository
+   - The names of the original authors
+
+2. AI TRAINING PROVISIONS
+
+   a) OPEN-SOURCE AI TRAINING: This software may be used to train AI models
+      that are released under open-source licenses, provided that:
+      - The trained model is made publicly available
+      - Attribution is provided in the model documentation
+      - The training dataset includes this license notice
+
+   b) PROPRIETARY AI TRAINING: This software may NOT be used to train
+      proprietary AI models without explicit written permission from the
+      copyright holders. Proprietary models include:
+      - Models whose weights are not publicly released
+      - Models offered only through paid APIs without source access
+      - Models with restrictive use licenses
+
+3. DERIVATIVE WORKS
+
+   Derivative works must:
+   - Maintain this license or a compatible open-source license
+   - Preserve all attribution notices
+   - Clearly indicate modifications made
+
+4. COMMERCIAL USE
+
+   Commercial use is permitted under the following conditions:
+   - Attribution requirements are met
+   - The software is not used for prohibited AI training purposes
+   - Any commercial products clearly credit the original project
+
+5. NO ADDITIONAL RESTRICTIONS
+
+   You may not apply legal terms or technological measures that legally
+   restrict others from doing anything the license permits.
+
+================================================================================
+SUMMARY OF PERMITTED AND PROHIBITED USES
+================================================================================
+
+PERMITTED:
+  ✓ Commercial use with attribution
+  ✓ Modification and distribution
+  ✓ Private use
+  ✓ Open-source AI training with attribution
+  ✓ Academic research
+  ✓ Integration into open-source projects
+
+PROHIBITED:
+  ✗ Proprietary AI training without permission
+  ✗ Removing or obscuring attribution
+  ✗ Claiming original authorship
+  ✗ Adding additional restrictions
+
+================================================================================
+
+For questions about licensing or to request permission for uses not covered
+by this license, please contact the maintainers through the project repository.

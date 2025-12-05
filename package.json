@@ -1,0 +1,44 @@
+{
+  "name": "1000langs",
+  "version": "0.1.0",
+  "description": "Super-parallel corpus crawler for 1500+ languages - RSR Gold Compliant",
+  "type": "module",
+  "scripts": {
+    "build": "rescript build",
+    "watch": "rescript build -w",
+    "clean": "rescript clean",
+    "test": "node --experimental-vm-modules node_modules/vitest/vitest.mjs",
+    "test:watch": "node --experimental-vm-modules node_modules/vitest/vitest.mjs --watch",
+    "test:coverage": "node --experimental-vm-modules node_modules/vitest/vitest.mjs --coverage",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write ."
+  },
+  "keywords": [
+    "linguistics",
+    "nlp",
+    "parallel-corpus",
+    "multilingual",
+    "bible",
+    "rescript",
+    "rsr-compliant"
+  ],
+  "author": "Ehsaneddin Asgari <asgari@cis.lmu.de>",
+  "license": "MIT AND LicenseRef-Palimpsest-0.8",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Hyperpolymath/1000Langs"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "@rescript/core": "^1.6.0",
+    "rescript": "^11.1.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.0",
+    "@vitest/coverage-v8": "^2.1.0",
+    "vitest": "^2.1.0"
+  }
+}
