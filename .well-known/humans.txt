@@ -1,0 +1,9 @@
+/* TEAM */
+Author: Hyperpolymath
+Contact: hyperpolymath@proton.me
+GitHub: https://github.com/hyperpolymath
+
+/* SITE */
+Last update: 2025-12-10
+Standards: RSR (Rhodium Standard Repository)
+Software: Guix, Just, Rust, ReScript, Elixir
