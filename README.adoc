@@ -1,243 +1,76 @@
-// SPDX-License-Identifier: MIT AND LicenseRef-Palimpsest-0.8
-// SPDX-FileCopyrightText: 2024-2025 Ehsaneddin Asgari and Contributors
 = LOL
-:toc: preamble
-:toclevels: 3
+Jonathan D.A. Jewell <jonathan.jewell@gmail.com>
+:toc: macro
 :icons: font
 :source-highlighter: rouge
 :experimental:
+:url-github: https://github.com/hyperpolymath/LOL
+:url-gitlab: https://gitlab.com/hyperpolymath/LOL
+:url-bitbucket: https://bitbucket.org/hyperpolymath/LOL
+:url-codeberg: https://codeberg.org/hyperpolymath/LOL
 
-image:https://img.shields.io/badge/RSR-Gold%20(100%25)-ffd700[RSR Compliance, link=https://github.com/Hyperpolymath/rhodium-standard-repositories]
-image:https://img.shields.io/badge/License-MIT%20%2B%20Palimpsest-blue[License]
-image:https://img.shields.io/badge/ReScript-11.x-e84f4f[ReScript]
-image:https://img.shields.io/badge/Podman-Ready-purple[Podman]
+Lots of Logging - structured logging library
 
-**Super-parallel corpus crawler for multilingual NLP and Computational Linguistics research**
+image:https://img.shields.io/badge/RSR-Certified-gold[RSR Certified]
+image:https://img.shields.io/badge/License-AGPL%20v3-blue[License]
 
-A type-safe ReScript implementation for building massive parallel corpora across 1500+ languages from Bible translation sources.
+toc::[]
 
-== Features
+== Overview
 
-* *1500+ Languages* - Crawl parallel texts from multiple Bible corpus sources
-* *Type-Safe* - Built with ReScript for compile-time correctness
-* *Proof-Verified* - Echidna integration for mathematical verification
-* *RSR Gold Compliant* - Follows Rhodium Standard Repository specifications
-* *Semantic Grounding* - OpenCyc integration for common-sense reasoning
-* *Container-Ready* - Podman-native (no Docker required)
+LOL is part of the link:https://rhodium.sh[Rhodium Standard] (RSR) ecosystem.
 
-== Quick Start
+Domain: *software-development*
 
-=== Prerequisites
-
-* Node.js 20+
-* Just command runner
-* Nix (recommended) or npm
-* Podman (for containers)
-
-=== Installation
+== Installation
 
 [source,bash]
 ----
-# Clone the repository
-git clone https://github.com/Hyperpolymath/1000Langs.git
-cd 1000Langs
+# Clone from GitHub (primary)
+git clone {url-github}
 
-# Using Nix (recommended)
-nix develop
-
-# Or using npm directly
-npm install
+# Or from mirrors
+git clone {url-gitlab}
+git clone {url-codeberg}
 ----
 
-=== Build & Run
+== RSR Stack
 
-[source,bash]
-----
-# Build the project
-just build
+This project follows RSR conventions:
 
-# Run tests
-just test
+* ✅ ReScript for frontend/logic
+* ✅ Deno for JS runtime
+* ✅ WASM for performance-critical code
+* ✅ Rust/OCaml/Haskell for systems/proofs
+* ✅ Guile/Scheme for configuration
+* ❌ No TypeScript
+* ❌ No Go
+* ❌ No npm
 
-# Run the crawler
-just crawl-all
-----
+== Mirrors
 
-== Project Structure
-
-[source]
-----
-1000Langs/
-├── src/
-│   ├── Lang1000.res          # Main entry point
-│   ├── crawlers/             # Web crawler implementations
-│   │   ├── Crawler.res       # Base crawler module
-│   │   ├── BibleCloud.res    # bible.cloud crawler
-│   │   ├── BibleCom.res      # bible.com crawler
-│   │   └── PngScriptures.res # pngscriptures.org crawler
-│   ├── api/                  # API client wrappers
-│   │   └── DigitalBiblePlatform.res
-│   ├── corpus/               # Corpus management
-│   │   └── Alignment.res     # Parallel text alignment
-│   ├── utils/                # Utility modules
-│   │   ├── Iso639.res        # Language code handling
-│   │   └── Statistics.res    # Statistical functions
-│   ├── proofs/               # Mathematical proofs
-│   └── cyc/                  # OpenCyc integration
-├── test/                     # Test suites
-├── proofs/                   # Echidna proof files
-├── config/                   # Nickel configuration
-├── meta/                     # Reference data
-├── .well-known/              # Discovery files
-├── justfile                  # Task automation
-├── flake.nix                 # Nix development environment
-├── Containerfile             # Podman container definition
-└── rescript.json             # ReScript configuration
-----
-
-== Supported Sources
-
-[cols="1,2,1,1"]
+[cols="1,2"]
 |===
-|Source |URL |Type |Languages
+| Platform | URL
 
-|Bible Cloud
-|https://bible.cloud
-|API
-|1500+
-
-|Bible.com
-|https://bible.com
-|Scraper
-|2000+
-
-|PNG Scriptures
-|https://pngscriptures.org
-|Download
-|800+
-
-|eBible
-|https://ebible.org
-|Download
-|1000+
-
-|Find.Bible
-|https://find.bible
-|API
-|1200+
+| GitHub (primary) | {url-github}
+| GitLab | {url-gitlab}
+| Bitbucket | {url-bitbucket}
+| Codeberg | {url-codeberg}
 |===
-
-== Configuration
-
-Configuration is managed through Nickel for type-safe, validated settings:
-
-[source,bash]
-----
-# Validate configuration
-just nickel-check
-
-# Export to JSON
-just nickel-export
-
-# Show resolved config
-just nickel-show
-----
-
-See `config/main.ncl` for all configuration options.
-
-== Testing
-
-[source,bash]
-----
-# Run all tests
-just test
-
-# Run with coverage
-just test-coverage
-
-# Run proof verification
-just prove
-----
-
-== Proof Verification
-
-This project integrates with https://github.com/hyperpolymath/echidna[Echidna] for mathematical proof verification:
-
-* Data integrity proofs
-* Alignment correctness verification
-* Statistical property validation
-* Type safety guarantees
-
-[source,bash]
-----
-# Run all proofs
-just prove
-
-# Check specific proof
-just prove-check alignment_correctness
-----
-
-== Container Deployment
-
-Uses Podman (not Docker) for container operations:
-
-[source,bash]
-----
-# Build container
-just container-build
-
-# Run container
-just container-run
-
-# Deploy with volume mounts
-just container-dev
-----
-
-== RSR Compliance
-
-This project targets *Gold (100%)* compliance with the https://github.com/Hyperpolymath/rhodium-standard-repositories[Rhodium Standard Repository] specification:
-
-[source,bash]
-----
-# Run compliance audit
-just rsr-audit
-
-# Generate HTML report
-just rsr-audit-html
-----
-
-== Contributing
-
-See link:CONTRIBUTING.adoc[CONTRIBUTING.adoc] for guidelines.
-
-This project uses the *Tri-Perimeter Contribution Framework (TPCF)*:
-
-* *Perimeter 1 (Core)*: Maintainers only
-* *Perimeter 2 (Expert)*: Trusted contributors
-* *Perimeter 3 (Community)*: Open contributions
 
 == License
 
-Dual licensed under:
+Licensed under AGPL-3.0-or-later OR LicenseRef-Palimpsest-0.5.
 
-* MIT License
-* Palimpsest License v0.8
+See link:LICENSE[LICENSE] for details.
 
-See link:LICENSE.txt[LICENSE.txt] for details.
+== Contributing
 
-Commercial use with attribution is permitted. Proprietary AI training without attribution is prohibited.
+See link:CONTRIBUTING.adoc[CONTRIBUTING.adoc].
 
-== Acknowledgments
+== Metadata
 
-* Original Python implementation by Ehsaneddin Asgari (LMU Munich)
-* Bible corpus data from various open Bible translation projects
-* https://github.com/hyperpolymath/echidna[Echidna] for proof verification
-* https://github.com/Hyperpolymath/rhodium-standard-repositories[RSR] for compliance framework
-
-== See Also
-
-* link:CONTRIBUTING.adoc[Contributing Guide]
-* link:CODE_OF_CONDUCT.adoc[Code of Conduct]
-* link:SECURITY.md[Security Policy]
-* link:CHANGELOG.md[Changelog]
-* link:FUTURE.adoc[Future Roadmap]
+* Domain: software-development
+* Framework: RSR (Rhodium Standard Repository)
+* Dublin Core: link:.well-known/dc.xml[.well-known/dc.xml]
