@@ -1,148 +1,79 @@
-# SPDX-License-Identifier: MIT AND LicenseRef-Palimpsest-0.8
-# SPDX-FileCopyrightText: 2024-2025 Ehsaneddin Asgari and Contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# RSR-compliant .gitignore
 
-# =============================================================================
-# Node.js / npm
-# =============================================================================
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.npm
-.yarn-integrity
-package-lock.json
-
-# =============================================================================
-# ReScript
-# =============================================================================
-.rescript/
-lib/
-*.res.mjs
-*.resi.mjs
-.merlin
-.bsb.lock
-
-# =============================================================================
-# Build outputs
-# =============================================================================
-dist/
-build/
-out/
-*.js.map
-
-# =============================================================================
-# Testing
-# =============================================================================
-coverage/
-.nyc_output/
-*.lcov
-.vitest/
-
-# =============================================================================
-# IDE / Editors
-# =============================================================================
-.idea/
-.vscode/
+# OS & Editor
+.DS_Store
+Thumbs.db
 *.swp
 *.swo
 *~
-.project
-.classpath
-.settings/
-*.sublime-project
-*.sublime-workspace
+.idea/
+.vscode/
 
-# =============================================================================
-# OS files
-# =============================================================================
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
+# Build
+/target/
+/_build/
+/build/
+/dist/
+/out/
 
-# =============================================================================
-# Environment / Secrets
-# =============================================================================
-.env
-.env.local
-.env.*.local
-*.pem
-*.key
-credentials.json
-secrets.yaml
+# Dependencies
+/node_modules/
+/vendor/
+/deps/
+/.elixir_ls/
 
-# =============================================================================
-# Logs
-# =============================================================================
-logs/
-*.log
-npm-debug.log*
+# Rust
+# Cargo.lock  # Keep for binaries
 
-# =============================================================================
-# Data / Downloads
-# =============================================================================
-data/
-downloads/
-output/
-corpus/
-*.zip
-*.tar.gz
+# Elixir
+/cover/
+/doc/
+*.ez
+erl_crash.dump
 
-# =============================================================================
-# Nix
-# =============================================================================
-result
-result-*
+# Julia
+*.jl.cov
+*.jl.mem
+/Manifest.toml
 
-# =============================================================================
-# Podman / Containers
-# =============================================================================
-*.tar
-.container-*
+# ReScript
+/lib/bs/
+/.bsb.lock
 
-# =============================================================================
-# Nickel
-# =============================================================================
-config/*.json
-!config/schema.json
-
-# =============================================================================
-# Proofs / Verification
-# =============================================================================
-.echidna-cache/
-proofs/verified/*.vo
-proofs/verified/*.vok
-proofs/verified/*.vos
-proofs/verified/*.glob
-proofs/theories/*.agdai
-verification-results.json
-
-# =============================================================================
-# Reports
-# =============================================================================
-reports/*.html
-reports/*.json
-
-# =============================================================================
-# Temporary files
-# =============================================================================
-tmp/
-temp/
-*.tmp
-*.bak
-*.backup
-
-# =============================================================================
-# Python (legacy, should be gone)
-# =============================================================================
+# Python (SaltStack only)
 __pycache__/
 *.py[cod]
-*$py.class
-*.so
-.Python
 .venv/
-venv/
-ENV/
+
+# Ada/SPARK
+*.ali
+/obj/
+/bin/
+
+# Haskell
+/.stack-work/
+/dist-newstyle/
+
+# Chapel
+*.chpl.tmp.*
+
+# Secrets
+.env
+.env.*
+*.pem
+*.key
+secrets/
+
+# Test/Coverage
+/coverage/
+htmlcov/
+
+# Logs
+*.log
+/logs/
+
+# Temp
+/tmp/
+*.tmp
+*.bak
