@@ -1,93 +1,54 @@
-# SPDX-License-Identifier: MIT AND LicenseRef-Palimpsest-0.8
-# SPDX-FileCopyrightText: 2024-2025 Ehsaneddin Asgari and Contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# RSR-compliant .gitattributes
 
-# =============================================================================
-# Git Attributes for 1000Langs
-# =============================================================================
+* text=auto eol=lf
 
-# Auto detect text files and perform LF normalization
-* text=auto
+# Source
+*.rs    text eol=lf diff=rust
+*.ex    text eol=lf diff=elixir
+*.exs   text eol=lf diff=elixir
+*.jl    text eol=lf
+*.res   text eol=lf
+*.resi  text eol=lf
+*.ada   text eol=lf diff=ada
+*.adb   text eol=lf diff=ada
+*.ads   text eol=lf diff=ada
+*.hs    text eol=lf
+*.chpl  text eol=lf
+*.scm   text eol=lf
+*.ncl   text eol=lf
+*.nix   text eol=lf
 
-# =============================================================================
-# Source Code
-# =============================================================================
-*.res text eol=lf linguist-language=ReScript
-*.resi text eol=lf linguist-language=ReScript
-*.js text eol=lf
-*.mjs text eol=lf
-*.ts text eol=lf
-*.json text eol=lf
-*.ncl text eol=lf linguist-language=Nickel
-*.nix text eol=lf linguist-language=Nix
+# Docs
+*.md    text eol=lf diff=markdown
+*.adoc  text eol=lf
+*.txt   text eol=lf
 
-# =============================================================================
-# Documentation
-# =============================================================================
-*.adoc text eol=lf linguist-documentation
-*.md text eol=lf linguist-documentation
-*.txt text eol=lf
-*.yml text eol=lf
-*.yaml text eol=lf
+# Data
+*.json  text eol=lf
+*.yaml  text eol=lf
+*.yml   text eol=lf
+*.toml  text eol=lf
 
-# =============================================================================
-# Proof Files
-# =============================================================================
-*.agda text eol=lf linguist-language=Agda
-*.v text eol=lf linguist-language=Coq
-*.lean text eol=lf linguist-language=Lean
-*.spec text eol=lf
-
-# =============================================================================
-# Configuration
-# =============================================================================
-*.toml text eol=lf
-justfile text eol=lf
-Containerfile text eol=lf
-.gitignore text eol=lf
+# Config
+.gitignore     text eol=lf
 .gitattributes text eol=lf
-.editorconfig text eol=lf
+justfile       text eol=lf
+Makefile       text eol=lf
+Containerfile  text eol=lf
 
-# =============================================================================
-# Shell Scripts
-# =============================================================================
-*.sh text eol=lf
-*.bash text eol=lf
+# Scripts
+*.sh   text eol=lf
 
-# =============================================================================
-# Data Files
-# =============================================================================
-*.tsv text eol=lf
-*.csv text eol=lf
-
-# =============================================================================
-# Binary Files
-# =============================================================================
-*.png binary
-*.jpg binary
-*.jpeg binary
-*.gif binary
-*.ico binary
-*.pdf binary
-*.zip binary
-*.tar.gz binary
-*.woff binary
+# Binary
+*.png   binary
+*.jpg   binary
+*.gif   binary
+*.pdf   binary
 *.woff2 binary
-*.ttf binary
-*.eot binary
+*.zip   binary
+*.gz    binary
 
-# =============================================================================
-# Lock Files (do not diff)
-# =============================================================================
-package-lock.json -diff
-flake.lock -diff
-
-# =============================================================================
-# Generated Files (do not diff)
-# =============================================================================
-*.res.mjs linguist-generated=true
-dist/** linguist-generated=true
-
-# =============================================================================
-# Vendored Files
-# =============================================================================
-meta/** linguist-vendored=true
+# Lock files
+Cargo.lock  text eol=lf -diff
+flake.lock  text eol=lf -diff
