@@ -7,6 +7,29 @@
 
 This document outlines planned features and integrations for 1000Langs.
 
+== Current Status (v0.1.0)
+
+=== Completed
+
+* ✅ Core ReScript codebase structure
+* ✅ RSR Gold compliance (100%)
+* ✅ Full CI/CD pipeline with security scanning
+* ✅ SHA-pinned GitHub Actions
+* ✅ ISO 639 language code utilities
+* ✅ Statistical analysis module (entropy, KL-divergence, etc.)
+* ✅ Base crawler framework with rate limiting
+* ✅ Crawler implementations (Bible.cloud, Bible.com, PNG Scriptures)
+* ✅ Digital Bible Platform API client
+* ✅ OpenCyc semantic integration scaffolding
+* ✅ 80 passing tests
+
+=== Immediate Priorities
+
+1. **Complete crawler implementations** - Finish TODO stubs in crawler modules
+2. **Implement actual API calls** - Connect crawler framework to HTTP client
+3. **Data persistence layer** - Store crawled corpus data
+4. **CLI interface** - Command-line tool for corpus operations
+
 == GIS Integration: Languages Meet Geography
 
 === Overview
@@ -80,25 +103,25 @@ on interactive maps.
 
 === Implementation Phases
 
-==== Phase 1: Basic Map (2-3 weeks effort)
+==== Phase 1: Basic Map
 * Set up OpenLiteSpeed server
 * Integrate Leaflet for maps
 * Display language points from Glottolog
 * Basic filtering by language family
 
-==== Phase 2: Corpus Integration (2-3 weeks effort)
+==== Phase 2: Corpus Integration
 * Connect to 1000Langs corpus data
 * Show translation availability per language
 * Add source filtering
 * Implement search functionality
 
-==== Phase 3: Advanced Features (3-4 weeks effort)
+==== Phase 3: Advanced Features
 * WALS typological feature overlay
 * OpenCyc reasoning integration
 * Custom visualization layers
 * Export functionality
 
-==== Phase 4: Analytics (2-3 weeks effort)
+==== Phase 4: Analytics
 * Corpus statistics dashboard
 * Coverage gap analysis
 * Typological clustering visualizations

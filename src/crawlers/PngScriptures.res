@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT AND LicenseRef-Palimpsest-0.8
 // SPDX-FileCopyrightText: 2024-2025 Ehsaneddin Asgari and Contributors
 
+open RescriptCore
+
 /**
  * PNG Scriptures Crawler
  *
