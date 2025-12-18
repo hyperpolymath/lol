@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT AND LicenseRef-Palimpsest-0.8
 // SPDX-FileCopyrightText: 2024-2025 Ehsaneddin Asgari and Contributors
 
+open RescriptCore
+
 /**
  * OpenCyc Integration
  *
@@ -44,7 +46,7 @@ module Concepts = {
 module Types = {
   type cycConstant = string  // e.g., "#$English-HumanLanguage"
 
-  type cycFormula =
+  type rec cycFormula =
     | Atom(cycConstant)
     | List(array<cycFormula>)
     | Variable(string)
@@ -71,6 +73,8 @@ module Types = {
 }
 
 module Client = {
+  // Alias Error before opening Types (which shadows it)
+  let resultError = x => Error(x)
   open Types
 
   type t = {
@@ -88,7 +92,7 @@ module Client = {
 
   let connect = (_client: t): promise<result<unit, string>> => {
     // TODO: Implement actual connection to OpenCyc server
-    Promise.resolve(Error("OpenCyc connection not implemented"))
+    Promise.resolve(resultError("OpenCyc connection not implemented"))
   }
 
   let disconnect = (client: t): unit => {

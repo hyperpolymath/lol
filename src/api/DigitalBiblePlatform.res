@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT AND LicenseRef-Palimpsest-0.8
 // SPDX-FileCopyrightText: 2024-2025 Ehsaneddin Asgari and Contributors
 
+open RescriptCore
+
 /**
  * Digital Bible Platform API
  *
@@ -45,7 +47,7 @@ module Types = {
     type_: string,
   }
 
-  type book = {
+  type rec book = {
     id: string,
     bibleId: string,
     abbreviation: string,
@@ -81,13 +83,15 @@ module Types = {
     copyright: string,
   }
 
+  type apiMeta = {
+    fums: string,
+    fumsId: string,
+    fumsJs: string,
+  }
+
   type apiResponse<'a> = {
     data: 'a,
-    meta: option<{
-      fums: string,
-      fumsId: string,
-      fumsJs: string,
-    }>,
+    meta: option<apiMeta>,
   }
 
   type apiError = {
