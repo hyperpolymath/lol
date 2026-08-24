@@ -1,24 +1,31 @@
-# LOL i18n Service — ABI/FFI/API Triple Documentation
+== LOL i18n Service — ABI/FFI/API Triple Documentation
 
-## Overview
+=== Overview
 
-The LOL (Language of Languages) i18n service follows the **Hyperpolymath ABI/FFI/API Triple Standard**:
+The LOL (Language of Languages) i18n service follows the *Hyperpolymath
+ABI/FFI/API Triple Standard*:
 
-- **ABI (Application Binary Interface)** defined in **Idris2** with formal proofs
-- **FFI (Foreign Function Interface)** implemented in **Zig** for C compatibility
-- **API** exposed via a **Zig** gateway (REST/gRPC/GraphQL) for idiomatic high-level access
+* *ABI (Application Binary Interface)* defined in *Idris2* with formal
+proofs
+* *FFI (Foreign Function Interface)* implemented in *Zig* for C
+compatibility
+* *API* exposed via a *Zig* gateway (REST/gRPC/GraphQL) for idiomatic
+high-level access
 
-LOL is always called as a service, never embedded. Consumers initialise with
-`lol_init()`, perform translation lookups and plural form selection across
-1500+ languages, then clean up with `lol_free()`.
+LOL is always called as a service, never embedded. Consumers initialise
+with `+lol_init()+`, perform translation lookups and plural form
+selection across 1500+ languages, then clean up with `+lol_free()+`.
 
-> **Note:** V-lang was the previous API layer and was banned estate-wide on 2026-04-10.
-> The sidelined V-lang wrappers under `api/v-lol/` and `api/v-gateway/` remain only
-> for historical reference. See their respective `MIGRATION.adoc` files for details.
+____
+*Note:* V-lang was the previous API layer and was banned estate-wide on
+2026-04-10. The sidelined V-lang wrappers under `+api/v-lol/+` and
+`+api/v-gateway/+` remain only for historical reference. See their
+respective `+MIGRATION.adoc+` files for details.
+____
 
-## Architecture
+=== Architecture
 
-```
+....
 ┌─────────────────────────────────────────────────┐
 │  ABI Definitions (Idris2)                       │
 │  src/abi/                                       │
@@ -69,11 +76,11 @@ LOL is always called as a service, never embedded. Consumers initialise with
 │                   replaces v-lol/src/lol.v +     │
 │                   ffi.v)                         │
 └─────────────────────────────────────────────────┘
-```
+....
 
-## Directory Structure
+=== Directory Structure
 
-```
+....
 lol/
 ├── src/
 │   └── abi/                         # ABI definitions (Idris2)
@@ -110,92 +117,117 @@ lol/
 │   └── v-gateway/                   # DEPRECATED — see MIGRATION.adoc
 │       └── src/
 └── ABI-FFI-README.md                # This file
-```
+....
 
-## Key Types
+=== Key Types
 
-| Type | Idris2 | C |
-|------|--------|---|
-| Result codes | `Result` | `lol_result_t` |
-| Plural category | `PluralCategory` | `lol_plural_category_t` |
-| Locale | `Locale` | `lol_locale_t` |
-| Translation | `TranslationResult` | `lol_translation_result_t` |
-| Language info | `LanguageInfo` | `lol_language_info_t` |
-| Plural rule | `PluralRule` | `lol_plural_rule_t` |
+[cols=",,",options="header",]
+|===
+|Type |Idris2 |C
+|Result codes |`+Result+` |`+lol_result_t+`
+|Plural category |`+PluralCategory+` |`+lol_plural_category_t+`
+|Locale |`+Locale+` |`+lol_locale_t+`
+|Translation |`+TranslationResult+` |`+lol_translation_result_t+`
+|Language info |`+LanguageInfo+` |`+lol_language_info_t+`
+|Plural rule |`+PluralRule+` |`+lol_plural_rule_t+`
+|===
 
-## Formal Proofs (Idris2 ABI)
+=== Formal Proofs (Idris2 ABI)
 
 The Idris2 ABI layer provides the following compile-time guarantees:
 
-1. **Result code round-trip**: `resultFromInt (resultToInt r) = Just r` for all `r`
-2. **Plural category round-trip**: `pluralFromInt (pluralToInt p) = Just p` for all `p`
-3. **Result code injectivity**: distinct results map to distinct integer codes
-4. **Handle non-null**: the `Handle` type cannot wrap a null pointer (enforced by `So`)
-5. **Struct alignment**: all C struct layouts are proven to have correctly aligned fields
-6. **Plural form count bounds**: `PluralRule.formCount` is proven to be in range 1-6
-7. **BCP-47 validation**: `ValidLocale` proves tag structure at construction (Locale.idr)
-8. **Translation key validity**: `ValidKey` proves non-empty dot-separated segments (TranslationKey.idr)
-9. **Plural coverage**: `eastAsianPluralConstant` proves East Asian always returns Other (PluralForm.idr)
-10. **Plural FFI bounds**: `pluralToIntBounded` proves category integers stay in 0-5 range
-11. **Store lookup guarantee**: `CorrectStore` interface proves key-exists implies non-empty result (I18nStore.idr)
-12. **Fallback chain contract**: `lookupWithFallback` walks chain with locale/key pair, resolves or returns Nothing
+[arabic]
+. *Result code round-trip*: `+resultFromInt (resultToInt r) = Just r+`
+for all `+r+`
+. *Plural category round-trip*:
+`+pluralFromInt (pluralToInt p) = Just p+` for all `+p+`
+. *Result code injectivity*: distinct results map to distinct integer
+codes
+. *Handle non-null*: the `+Handle+` type cannot wrap a null pointer
+(enforced by `+So+`)
+. *Struct alignment*: all C struct layouts are proven to have correctly
+aligned fields
+. *Plural form count bounds*: `+PluralRule.formCount+` is proven to be
+in range 1-6
+. *BCP-47 validation*: `+ValidLocale+` proves tag structure at
+construction (Locale.idr)
+. *Translation key validity*: `+ValidKey+` proves non-empty
+dot-separated segments (TranslationKey.idr)
+. *Plural coverage*: `+eastAsianPluralConstant+` proves East Asian
+always returns Other (PluralForm.idr)
+. *Plural FFI bounds*: `+pluralToIntBounded+` proves category integers
+stay in 0-5 range
+. *Store lookup guarantee*: `+CorrectStore+` interface proves key-exists
+implies non-empty result (I18nStore.idr)
+. *Fallback chain contract*: `+lookupWithFallback+` walks chain with
+locale/key pair, resolves or returns Nothing
 
-No `believe_me`, `assert_total`, or other escape hatches are used.
+No `+believe_me+`, `+assert_total+`, or other escape hatches are used.
 
-## Building
+=== Building
 
-### Idris2 ABI
+==== Idris2 ABI
 
-```bash
+[source,bash]
+----
 idris2 --check lol-abi.ipkg   # Type-check all ABI definitions and proofs
 idris2 --build lol-abi.ipkg   # Build (optional, ABI is specification-only)
-```
+----
 
-### Zig FFI
+==== Zig FFI
 
-```bash
+[source,bash]
+----
 cd ffi/zig
 zig build              # Builds liblol.so and liblol.a
 zig build test         # Runs unit tests
 zig build test-integration  # Runs integration tests
-```
+----
 
-### Zig API Gateway
+==== Zig API Gateway
 
-```bash
+[source,bash]
+----
 cd api/zig-gateway
 zig build
 ./zig-out/bin/lol-gateway
-```
+----
 
-Default base port is 7800. Configure via `LOL_PORT` environment variable.
-Corpus data directory defaults to `corpus`; set via `LOL_DATA_DIR`.
+Default base port is 7800. Configure via `+LOL_PORT+` environment
+variable. Corpus data directory defaults to `+corpus+`; set via
+`+LOL_DATA_DIR+`.
 
-## Usage (Zig gateway, HTTP)
+=== Usage (Zig gateway, HTTP)
 
 The Zig API gateway exposes three endpoint families:
 
-**REST API** (HTTP on port 7800):
-```bash
+*REST API* (HTTP on port 7800):
+
+[source,bash]
+----
 curl http://localhost:7800/api/v1/languages
 curl http://localhost:7800/api/v1/corpus/stats
-```
+----
 
-**gRPC JSON-compatible** (on port 7801):
-```bash
+*gRPC JSON-compatible* (on port 7801):
+
+[source,bash]
+----
 curl -X POST http://localhost:7801/lol.TranslationService/Translate \
   -H "Content-Type: application/json" \
   -d '{"locale":"en-US","key":"app.greeting"}'
-```
+----
 
-**GraphQL** (on port 7802, endpoint `/graphql`):
-```bash
+*GraphQL* (on port 7802, endpoint `+/graphql+`):
+
+[source,bash]
+----
 curl -X POST http://localhost:7802/graphql \
   -H "Content-Type: application/json" \
   -d '{"query":"{ languages { code name } }"}'
-```
+----
 
-## License
+=== License
 
 SPDX-License-Identifier: MPL-2.0
 
