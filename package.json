@@ -28,7 +28,7 @@
     "rescript": "^12.0.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "^1.9.0",
+    "@biomejs/biome": "^2.5.10",
     "@vitest/coverage-v8": "^4.1.11",
     "vitest": "^4.1.8"
   }
