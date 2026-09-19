@@ -159,6 +159,6 @@ on interactive maps.
 
 Interested in helping implement these features? See:
 
-* link:CONTRIBUTING.adoc[Contributing Guide]
+* link:.github/CONTRIBUTING.md[Contributing Guide]
 * GitHub Issues with "enhancement" label
 * Discussion forum for design proposals
