@@ -88,3 +88,6 @@ htmlcov/
 /tmp/
 *.tmp
 *.bak
+
+# Pages output
+/_site/
