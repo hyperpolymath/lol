@@ -87,7 +87,7 @@ entropy-nonneg : ∀ {n} (d : Distribution n) → 0.0 ≤ᶠ entropy d
 entropy-nonneg {n} d =
   sumF-nonneg (map plogp (values d)) λ { {i} →
     subst (0.0 ≤ᶠ_) (sym (lookup-map plogp (values d) i))
-      (plogp-nonneg (lookup (values d) i) (lower d) (upper d)) }
+      (plogp-nonneg (lookup (values d) i) (lower d {i}) (upper d {i})) }
 
 -- ============================================================================
 -- Jensen-Shannon divergence is symmetric
