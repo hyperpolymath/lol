@@ -16,7 +16,7 @@ image:https://img.shields.io/badge/Podman-Ready-purple[Podman]
 
 **Super-parallel corpus crawler for multilingual NLP and Computational Linguistics research**
 
-A type-safe ReScript implementation for building massive parallel corpora across 1500+ languages from Bible translation sources.
+A type-safe AffineScript implementation for building massive parallel corpora across 1500+ languages from translation sources.
 
 == Features
 
