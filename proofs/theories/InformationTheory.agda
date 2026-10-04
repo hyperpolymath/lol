@@ -24,8 +24,8 @@
 module InformationTheory where
 
 open import Data.Float using (Float; _+_; _÷_; _≤ᵇ_; _<ᵇ_)
-open import Data.Fin using (Fin; zero; suc)
-open import Data.Vec using (Vec; []; _∷_; map; zipWith; lookup)
+open import Data.Fin.Base using (Fin; zero; suc)
+open import Data.Vec.Base using (Vec; []; _∷_; map; zipWith; lookup)
 open import Data.Unit.Base using (tt)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; sym; trans; cong; cong₂; subst)

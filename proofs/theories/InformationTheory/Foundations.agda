@@ -18,9 +18,9 @@ module InformationTheory.Foundations where
 open import Data.Bool.Base using (T; if_then_else_)
 open import Data.Float public
   using (Float; _+_; _*_; _÷_; -_; log; _≤ᵇ_; _<ᵇ_)
-open import Data.Fin using (Fin)
+open import Data.Fin.Base using (Fin)
 open import Data.Nat using (ℕ)
-open import Data.Vec using (Vec; []; _∷_; map; zipWith; lookup)
+open import Data.Vec.Base using (Vec; []; _∷_; map; zipWith; lookup)
 open import Relation.Binary.PropositionalEquality using (_≡_)
 
 -- ============================================================================
