@@ -66,6 +66,12 @@ build/
 *.ttc
 *.ttm
 
+# Agda (interfaces + MAlta/compile artifacts emitted by `agda --safe` checks)
+*.ai
+*.agda-ir/
+/proofs/verification-results.json
+/proofs/reports/
+
 # Chapel
 *.chpl.tmp.*
 

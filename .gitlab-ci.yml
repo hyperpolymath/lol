@@ -163,13 +163,51 @@ rsr-audit:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
 proof-verification:
-  <<: *nix-template
   stage: verify
+  # Real type-check of the Agda corpus (issue #4 counterpart). Debian's agda +
+  # agda-stdlib match the GitHub Actions gate (apt-based, same versions).
+  # allow_failure stays true BY DESIGN: this job mirrors the gate onto the
+  # GitLab forge, but the authoritative check is
+  # .github/workflows/echidna-verify.yml; a broken mirror pipeline must not
+  # become a fake gate. Do not "fix" by deleting the script — the script is
+  # the point, the softness is the policy.
+  image: debian:bookworm-slim
+  variables:
+    DEBIAN_FRONTEND: "noninteractive"
   script:
-    - echo "Proof verification would run here"
+    - apt-get update -qq
+    - apt-get install -y -qq --no-install-recommends agda agda-stdlib python3 findutils
+    - |
+      set -eu
+      mkdir -p "$HOME/.agda/libraries"
+      touch "$HOME/.agda/libraries/estate-stdlib" "$HOME/.agda/defaults"
+      found=0
+      for lib in $(find /usr/share/agda-stdlib -maxdepth 2 -name '*.agda-lib' | sort); do
+        echo "$lib" >> "$HOME/.agda/libraries/estate-stdlib"
+        name=$(awk '$1=="name:"{print $2; exit}' "$lib")
+        [ -n "$name" ] && echo "$name" >> "$HOME/.agda/defaults"
+        found=1
+      done
+      [ "$found" = 1 ] || { echo "ERROR: no agda-stdlib .agda-lib found"; exit 1; }
+    - |
+      set -eu
+      FILES=$(find proofs/theories -name '*.agda' | sort)
+      [ -n "$FILES" ] || { echo "ERROR: empty Agda corpus under proofs/theories"; exit 1; }
+      failed=""
+      for f in $FILES; do
+        if grep -qE '\{-# OPTIONS[^#]*--safe' "$f"; then flags="--safe --without-K"; else flags="--without-K"; fi
+        echo "--- checking $f ($flags) ---"
+        agda $flags -i proofs/theories "$f" || failed="$failed $f"
+      done
+      [ -z "$failed" ] || { echo "FAILED:$failed"; exit 1; }
+    - python3 scripts/audit-trust-base.py
   allow_failure: true
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      changes:
+        - proofs/**
+        - scripts/audit-trust-base.py
+        - .gitlab-ci.yml
 
 # =============================================================================
 # Security Stage

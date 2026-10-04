@@ -16,8 +16,15 @@ primary = ["agda", "coq"]
 fallback = ["lean", "z3"]
 
 [provers.agda]
+# Matches the apt-pinned toolchain used by .github/workflows/echidna-verify.yml
+# (ubuntu-latest: Agda 2.6.4.3 + stdlib 1.7.2). Bump deliberately, in lockstep
+# with the workflow if the runner image moves.
 version = "2.6.4"
 stdlib = true
+# `--safe` applies to every module EXCEPT the quarantined trust base
+# (theories/InformationTheory/Axioms.agda, which holds the ECHIDNA:trust
+# postulates and is checked with --without-K only). The split is enforced by
+# scripts/audit-trust-base.py; see proofs/README.adoc.
 flags = ["--safe", "--without-K"]
 
 [provers.coq]
@@ -44,20 +51,21 @@ cache = true
 cache_dir = ".echidna-cache"
 
 [specifications]
-# Specification files to verify
+# Specification sketches — design inputs, NOT yet machine-checked
+# (they use Agda-like pseudo-syntax, e.g. a `theorem` keyword Agda lacks).
 files = [
   "specs/alignment.spec",
-  "specs/crawler.spec",
   "specs/statistics.spec",
   "specs/iso639.spec",
 ]
 
 [theories]
-# Background theories to load
+# Background theories to load (files that exist; see proofs/README.adoc for
+# the Foundations/Axioms quarantine layout and the trust-base manifest)
 files = [
-  "theories/information_theory.agda",
-  "theories/set_theory.agda",
-  "theories/language_types.agda",
+  "theories/InformationTheory.agda",
+  "theories/InformationTheory/Foundations.agda",
+  "theories/InformationTheory/Axioms.agda",
 ]
 
 [output]
@@ -92,7 +100,8 @@ concepts = [
 ]
 
 [ci]
-# CI/CD integration
-fail_on_unverified = false
+# CI/CD integration. fail_on_unverified must stay true — the standards-era
+# gate fail-opened precisely because unverified was tolerated (issue #4).
+fail_on_unverified = true
 min_coverage = 0.8
 report_format = "junit"

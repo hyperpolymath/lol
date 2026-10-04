@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 == [Unreleased]
 
 === Added
+- Agda proof verification CI (`.github/workflows/echidna-verify.yml`,
+  resolving issue #4): hard-failing `agda --safe` type-check over
+  `proofs/theories`, fail-closed corpus assertion, and a trust-base audit
+  gating `proofs/trust-base.json` against the quarantined axioms
+- Trust-quarantine layering for the Agda corpus
+  (`InformationTheory` = theorems, `Foundations` = safe definitions,
+  `Axioms` = sole non-safe `postulate` module, each axiom tagged
+  `ECHIDNA:trust`)
+- Proven theorems `entropy-nonneg` and `js-symmetric` (POSTULATE-AUDIT
+  Phase 2 items), plus `just prove-agda` / `just prove-audit` /
+  `just prove-check-all` recipes and a mirror-grade check in `.gitlab-ci.yml`
 - Complete rewrite from Python to ReScript for type safety
 - RSR Gold compliance infrastructure
 - Echidna integration for mathematical proofs
@@ -21,6 +32,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - AsciiDoc documentation
 
 === Changed
+- `Distribution` now carries range and normalisation hypotheses with a
+  computational float order `_≤ᶠ_` (fixes the vacuous where-clause relations
+  identified in POSTULATE-AUDIT; refutable-as-stated versions removed)
+- `proofs/README.adoc` now describes the tree that exists; removed phantom
+  references (`set_theory.agda`, `language_types.agda`, `verified/*.v`,
+  `opencyc_integration.agda`) and labelled `specs/*.spec` as unchecked
+  design sketches
+- `proofs/echidna.toml`: theory/spec lists rebased to real files;
+  `[ci] fail_on_unverified = true`
 - Migrated from Python to ReScript
 - Replaced requirements.txt with package.json
 - Switched from Apache 2.0 to MIT + Palimpsest dual license

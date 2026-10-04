@@ -1,101 +1,128 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
 = LOL Information-Theory Postulate Audit
 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
-:updated: 2026-04-05
-:target: lol/proofs/theories/information_theory.agda
+:updated: 2026-10-04
+:target: lol/proofs/theories/InformationTheory.agda (+ Foundations/Axioms)
+:manifest: lol/proofs/trust-base.json
 
-== Summary
+== Current state (2026-10-04)
 
-`information_theory.agda` contains **9 postulates**. Audit verdict:
+The corpus was rebuilt around a quarantined trust base. All postulates now
+live in exactly one module — `InformationTheory/Axioms.agda`, compiled without
+`--safe` because Agda's `--safe` rejects `postulate` (Agda test
+`SafeFlagPostulate`) — and every one of them is tagged, named, classified,
+and budget-enforced against `{manifest}` by `scripts/audit-trust-base.py` in
+CI (`.github/workflows/echidna-verify.yml`, issue #4).
 
-- **4 are legitimate FFI axioms** (float arithmetic bridged to runtime)
-- **4 are theorems that SHOULD be proven** (currently postulated)
-- **1 is a relation declaration** that should move to imports
+The audit now contains **6 postulates**:
 
-== Per-postulate verdict
+- **4 legitimate IEEE-754 `ffi-fact` axioms** (true facts about
+  correctly-rounded float ops that Agda cannot derive from opaque primitives)
+- **2 `conjecture` axioms** (Gibbs' inequality and Lin's JSD bound lifted to
+  floats — honest open debt, never used by the proven theorems)
+- **0 uninterpreted where-clause relations** — the 2026-04 correctness bug is
+  structurally impossible now (see below)
 
-[cols="3,2,3,3",options="header"]
+[cols="3,2,3,2",options="header"]
 |===
-| Postulate | Line | Verdict | Action
+| Axiom | Class | Statement (roughly) | Why axiom
 
-| `log₂ : Float → Float`
-| 47
-| ✓ FFI axiom
-| Keep. Foreign float operation.
-
-| `_*f_ : Float → Float → Float`
-| 48
-| ✓ FFI axiom
-| Keep. Foreign float multiply.
-
-| `_+f_ : Float → Float → Float`
-| 49
-| ✓ FFI axiom
-| Keep. Foreign float add.
-
-| `negateF : Float → Float`
-| 50
-| ✓ FFI axiom
-| Keep. Foreign float negate.
-
-| `_/f_ : Float → Float → Float`
-| 67
-| ✓ FFI axiom
-| Keep. Foreign float divide.
-
-| `entropy-nonnegative`
-| 103
-| ✗ Provable
-| Replace with constructive proof. Each `plogp p` is either 0 or `-p·log₂(p)` where p∈[0,1] means log₂(p)≤0, so `-p·log₂(p)≥0`. Sum of non-negatives is non-negative. Requires float lemmas about `log₂` on [0,1]; add those as auxiliary postulates (honest FFI layer) but the top-level theorem should be proven.
-
-| `kl-nonnegative`
-| 109
-| ✗ Provable
-| Gibbs' inequality is a classical theorem. Proof uses Jensen's inequality on the convex function `-log`. Standard proof strategy: log-sum inequality, or expand via `x log(x/y) ≥ x - y`. Should be proven from standard real-analysis lemmas.
-
-| `js-symmetric`
-| 115
-| ✗ Trivially provable
-| By construction, JSD(P,Q) = (D(P‖M) + D(Q‖M))/2 where M = (P+Q)/2. Swap P↔Q gives the same M, so JSD(Q,P) = (D(Q‖M) + D(P‖M))/2 = JSD(P,Q). Proof is 2-3 lines in Agda.
-
-| `js-bounded`
-| 120
-| ✗ Provable (with effort)
-| Upper bound JSD ≤ log(2) requires the information-theoretic log-sum inequality. Non-trivial but classical. Should be proven or imported from an existing Agda library.
+| `log₂-nonpos` | ffi-fact | 0 ≤ v ≤ 1 → log₂ v ≤ 0 (IEEE, incl. v = 0 → −∞)
+| Float `log` is a runtime primitive; no real-analysis model in scope
+| `mul-sign` | ffi-fact | a ≥ 0 ∧ b ≤ 0 → −(a·b) ≥ 0 (correctly-rounded ×)
+| Sign/rounding law of IEEE multiplication
+| `add-nonneg` | ffi-fact | a ≥ 0 ∧ b ≥ 0 → a + b ≥ 0
+| Same, for addition (no associativity is ever claimed)
+| `add-comm` | ffi-fact | a + b ≡ b + a (bitwise)
+| IEEE addition is commutative even under rounding; NaN payload propagation
+  is symmetric
+| `kl-nonneg` | conjecture | Σ p·log₂(p/q) ≥ 0 for [0,1] entries summing to 1
+| Gibbs over reals; float rounding bridge is real proof work (Phase 2 open)
+| `js-bounded` | conjecture | 0 ≤ JSD ≤ 1 (bits)
+| Lin (1991); same rounding bridge plus log-sum inequality
 |===
 
-== Additional concerns
+**Discharged since the 2026-04 audit** (were postulates, now theorems proven
+in `InformationTheory` using only the four `ffi-fact` axioms):
 
-- **`_≥_` and `_≤_` declared as local where-clauses** (lines 104-105, 110-111, 121-123). These should be imported from `Data.Float.Properties` or defined module-wide, not per-postulate. Current structure means each postulate's `_≥_` is a distinct, empty relation — any value satisfies it vacuously. This is a **correctness bug**: the postulates are trivially satisfiable because the order relation is unconstrained.
+* `entropy-nonneg` — per-entry guard `plogpB` + `sumF` induction +
+  `lookup-map` transport.
+* `js-symmetric` — `zipWith-comm` on the midpoint construction +
+  `add-comm`; the swap never needs associativity.
+* The five float-arithmetic postulates from the 2024 baseline
+  (`log₂`, `_*f_`, `_+f_`, `negateF`, `_/f_`) are gone entirely: those ops are
+  *defined* by re-exporting `Agda.Builtin.Float` primitives through
+  `Data.Float`, which is not postulation and was correctly never in the trust
+  base after the rebuild.
 
-- **License header**: MIT AND LicenseRef-Palimpsest-0.8 (not the newer PMPL-1.0-or-later). Acceptable given attributed third-party origin (Ehsaneddin Asgari).
+== Historical: 2026-04-05 audit (pre-remediation state)
 
-== Remediation plan
+`information_theory.agda` (the pre-split file) contained **9 postulates**.
+Verdicts, preserved for provenance:
 
-=== Phase 1 — fix the order relation bug (HIGH priority)
+* 4-5 were "legitimate FFI axioms" for float ops bridged to runtime — later
+  recognised as definable via `Agda.Builtin.Float` re-exports.
+* 4 (`entropy-nonnegative`, `kl-nonnegative`, `js-symmetric`, `js-bounded`)
+  were theorems postulated rather than proven.
+* 1 was a relation *declaration* smuggled into a `where` clause.
 
-Replace the where-clause declarations of `_≥_`/`_≤_` with a module-level import
-from a float-comparison library. Without this, the theorem statements are
-vacuous.
+=== The correctness bug (now regression-gated)
 
-=== Phase 2 — prove the 4 theorems
+The old corpus declared `_≥_` and `_≤_` as **per-postulate `where`-clause
+relations** (`where _≥_ : Float → Float → Set`). Uninterpreted relations are
+satisfied vacuously by every pair of floats, so `entropy d ≥ 0.0` quantified
+over an empty proposition: *trivially provable, meaningfully false*. Two
+layers of gate now prevent this class:
 
-Proposed order (easiest first):
+1. Agda itself: `where` clauses on `postulate` signatures don't parse, and
+   even when abused via module-level declarations, the statements over
+   unconstrained `Probability` records are **refutable** (e.g. `p = 2.0`
+   gives `−p·log₂ p < 0`, and unnormalised pairs break Gibbs). The rebuild
+   replaces the records with a `Distribution` carrying `lower`, `upper` and
+   `normalised` hypotheses expressed through the *computational* order
+   `_≤ᶠ_ := T (… ≤ᵇ …)`, so each claim evaluates against the real IEEE
+   comparison.
+2. `scripts/audit-trust-base.py` fails on any `where _≥_/_≤_ :` shape inside
+   the trust base, and on any untagged or off-manifest postulate.
 
-1. `js-symmetric` — algebraic, 2-3 lines
-2. `entropy-nonnegative` — requires auxiliary `log₂-nonpos-on-01` lemma (postulated as FFI fact)
-3. `kl-nonnegative` — requires Gibbs/log-sum lemma
-4. `js-bounded` — hardest; may require importing from an Agda analysis library
+== License note (unchanged)
 
-=== Phase 3 — convert FFI postulates to trust-tagged axioms
+The Agda corpus files carry `MIT AND LicenseRef-Palimpsest-0.8` (not the
+newer PMPL-1.0-or-later), reflecting attributed third-party origin
+(Ehsaneddin Asgari, 2024). Acceptable as-is.
 
-Add `@trust(level=axiom, prover=ffi, since=...)` inline annotations above each
-of the 5 float postulates so the innervation layer records their trust level.
+== Remediation ledger
+
+*Phase 1 — fix the order relation bug*: **DONE 2026-10-04.** Computational
+`_≤ᶠ_`/`_<ᶠ_`/`_≥ᶠ_` module-wide in `Foundations`; where-clause relations
+eliminated and regression-gated.
+
+*Phase 2 — prove the 4 theorems*: **PARTIAL 2026-10-04.** `js-symmetric` and
+`entropy-nonneg` are proven. `kl-nonneg` and `js-bounded` remain tagged
+`conjecture` axioms — each requires real-analysis lemmas (log-sum/Jensen)
+over a reals model plus a rounding bridge; `Probability`-style range +
+normalisation hypotheses now make their statements *true-as-stated modulo
+rounding* rather than vacuous.
+
+*Phase 3 — convert FFI postulates to trust-tagged axioms*: **DONE.** The
+audit asked for `@trust(level=axiom, prover=ffi, since=...)` annotations;
+Agda has no annotation syntax, so the mechanism is the `ECHIDNA:trust
+<class> :: <name>` line tag consumed by the audit script and enforced by
+manifest equality (`{manifest}`), which is strictly stronger than comments:
+the tag set and the source are checked for exact bi-directional match.
+
+*Phase 4 (new, from issue #4) — CI that type-checks this tree*: **DONE.**
+Workflow ported from the stranded `standards` job with its two structural
+notes applied (no workflow-level `paths:` filter on `pull_request`;
+fail-closed corpus assertion), and with the type-check made a hard failure
+rather than the advisory `::warning::` the standards copy used.
 
 == Recorded as VeriSimDB octads (once deployed)
 
-Each postulate should produce a `proof-status` octad with:
+Each postulate produces a `proof-status` octad with:
 
-- `trust_level`: `axiom` (for FFI) or `postulate` (for provable theorems)
-- `axioms_used`: list of float primitives
-- Temporal: `verified_at` = null for postulates, set for any that get proven
+- `trust_level`: `axiom` for `ffi-fact`, `postulate` for `conjecture`
+- `axioms_used`: the four `ffi-fact` names for any proven theorem
+- Temporal: `verified_at` = null while `verified` = true for proven theorems
+  (`entropy-nonneg`, `js-symmetric`); `conjecture` entries remain
+  `verified_at: null` by design.

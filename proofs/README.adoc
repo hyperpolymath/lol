@@ -1,91 +1,78 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
-// SPDX-FileCopyrightText: 2024-2025 Ehsaneddin Asgari and Contributors
+// SPDX-FileCopyrightText: 2024-2026 Ehsaneddin Asgari and Contributors
 = Mathematical Proofs for 1000Langs
 :toc:
 :toclevels: 3
 
 This directory contains formal mathematical proofs and specifications for the
-1000Langs corpus crawler, verified using https://github.com/hyperpolymath/echidna[Echidna].
+1000Langs corpus crawler. The Agda tree is verified with
+https://github.com/hyperpolymath/echidna[Echidna] tooling conventions and is
+type-checked in CI by
+`.github/workflows/echidna-verify.yml` (port of the job formerly stranded in
+`hyperpolymath/standards`; see issue #4).
 
-== Proof Categories
+== Verified Tree and Trust Layering
 
-=== 1. Data Integrity Proofs
-
-Proofs that ensure the integrity of crawled and stored data:
-
-* *Checksums*: Cryptographic verification of data consistency
-* *Encoding*: UTF-8 validity and normalization guarantees
-* *Idempotency*: Re-crawling produces identical results
-
-=== 2. Alignment Correctness
-
-Proofs about parallel text alignment:
-
-* *Bijection*: One-to-one mapping between verse references
-* *Transitivity*: If A aligns with B and B with C, then A aligns with C
-* *Completeness*: All verses in source appear in alignment
-
-=== 3. Statistical Properties
-
-Proofs about statistical computations:
-
-* *KL-Divergence*: Non-negativity, asymmetry properties
-* *Jensen-Shannon*: Symmetry, boundedness (0 ≤ JSD ≤ 1)
-* *Entropy*: Maximized by uniform distribution
-
-=== 4. Type Safety Guarantees
-
-Proofs derived from the ReScript type system:
-
-* *ISO 639 Codes*: Valid language code formats
-* *Verse References*: Well-formed reference structures
-* *Configuration*: Type-safe Nickel schemas
-
-== Directory Structure
+The corpus is split so that everything load-bearing checks under Agda's
+`--safe` flag, and the irreducible trust base is quarantined and audited:
 
 [source]
 ----
 proofs/
-├── theories/       # Background mathematical theories
-│   ├── information_theory.agda
-│   ├── set_theory.agda
-│   └── language_types.agda
-├── specs/          # Formal specifications
+├── theories/
+│   ├── InformationTheory.agda            # public module: theorems (agda --safe)
+│   ├── InformationTheory/
+│   │   ├── Foundations.agda              # total, postulate-free definitions (agda --safe)
+│   │   └── Axioms.agda                   # THE ONLY quarantine holding `postulate`
+├── specs/                                # design sketches (NOT yet machine-checked)
 │   ├── alignment.spec
-│   ├── crawler.spec
+│   ├── iso639.spec
 │   └── statistics.spec
-└── verified/       # Verified implementations
-    ├── kl_divergence.v
-    ├── alignment.v
-    └── iso639.v
+├── trust-base.json                       # machine-readable axiom manifest (enforced by CI)
+├── POSTULATE-AUDIT.adoc                  # human-readable audit of every axiom
+└── echidna.toml                          # multi-prover pipeline config
 ----
 
-== Using Echidna
+Rules enforced by CI (`scripts/audit-trust-base.py`, one of the workflow steps):
 
-=== Running Proofs
+* `postulate` may only appear in `InformationTheory/Axioms.agda`;
+* every axiom carries an `ECHIDNA:trust <class> :: <name>` tag and must match
+  `trust-base.json` exactly — adding, removing, renaming, or reclassifying an
+  axiom without updating the manifest and this audit fails the build;
+* every safe module must keep `{-# OPTIONS --safe ... #-}`;
+* the corpus must be non-empty (a gate with nothing to check is no gate).
 
-[source,bash]
-----
-# Verify all proofs
-just prove
+`--safe` is not decoration: since Agda 2.6.1 it rejects `postulate` outright,
+which is why the trust base is a separate non-safe module rather than
+where-clauses scattered through the theorems (the pre-2026 corpus did the
+latter, and the relations declared that way were vacuously satisfiable —
+see POSTULATE-AUDIT.adoc).
 
-# Check specific proof
-just prove-check alignment_correctness
+== What Is Proven vs. What Is Axiomatic
 
-# Generate proof obligations
-just prove-gen
-----
+*Proven in `InformationTheory`* (from IEEE-754 `ffi-fact` axioms only):
 
-=== Adding New Proofs
+* `entropy-nonneg` — H ≥ 0 for entries in [0, 1], via per-entry
+  `0·log 0 = 0` guarding and a `sumF` induction.
+* `js-symmetric` — JSD(P,Q) ≡ JSD(Q,P), from commutativity of float addition
+  and the symmetric midpoint construction.
+* Vector plumbing (`lookup-map`, `sumF-nonneg`, `zipWith-cong₂`,
+  `zipWith-comm`) and definitional sanity lemmas.
 
-1. Create specification in `specs/`
-2. Implement proof in appropriate prover syntax
-3. Add to verification pipeline in `echidna.toml`
-4. Run `just prove` to verify
+`Axioms.agda` (class `conjecture`, kept open deliberately):
 
-== Proof Obligations
+* `kl-nonneg` — Gibbs' inequality; proof over reals needs the log-sum
+  inequality plus a rounding bridge.
+* `js-bounded` — Lin (1991) bounds; same.
 
-=== Alignment Module
+== Proof Obligations (specs/ — design sketches, not checked)
+
+The `.spec` files under `specs/` are *specification sketches* written in
+Agda-like pseudo-syntax (they use a `theorem` keyword that Agda does not
+have). They are inputs to future proof work, not verified artifacts, and CI
+does not type-check them. Their intended obligations:
+
+=== Alignment Module (`specs/alignment.spec`)
 
 [cols="1,2,1"]
 |===
@@ -93,18 +80,18 @@ just prove-gen
 
 |`align_bijective`
 |Alignment creates bijective mapping
-|Pending
+|Draft spec
 
 |`align_transitive`
 |Alignment is transitive across languages
-|Pending
+|Draft spec
 
 |`coverage_monotonic`
 |Adding translations increases coverage
-|Pending
+|Draft spec
 |===
 
-=== Statistics Module
+=== Statistics Module (`specs/statistics.spec`)
 
 [cols="1,2,1"]
 |===
@@ -112,26 +99,30 @@ just prove-gen
 
 |`kl_nonnegative`
 |KL-divergence ≥ 0
-|Pending
+|Axiom (`kl-nonneg`) — provable over reals, open over Float
 
 |`kl_zero_identical`
-|KL(P\|\|P) = 0
-|Pending
+|KL(P‖P) = 0
+|Not formalised yet
 
 |`js_symmetric`
-|JSD(P\|\|Q) = JSD(Q\|\|P)
-|Pending
+|JSD(P‖Q) = JSD(Q‖P)
+|*Proven* (`js-symmetric`)
 
 |`js_bounded`
 |0 ≤ JSD ≤ 1
-|Pending
+|Axiom (`js-bounded`)
 
 |`entropy_maximum`
 |H(uniform) = log(n)
-|Pending
+|Not formalised yet
+
+|`entropy_nonnegative`
+|H ≥ 0
+|*Proven* (`entropy-nonneg`)
 |===
 
-=== ISO 639 Module
+=== ISO 639 Module (`specs/iso639.spec`)
 
 [cols="1,2,1"]
 |===
@@ -139,23 +130,53 @@ just prove-gen
 
 |`code_format_valid`
 |All codes match regex patterns
-|Pending
+|Draft spec
 
 |`conversion_injective`
 |ISO 639-1 → 639-3 is injective
-|Pending
+|Draft spec
 
 |`special_codes_disjoint`
 |Special codes don't overlap regular codes
-|Pending
+|Draft spec
 |===
 
-== Integration with OpenCyc
+== Running the Checks Locally
 
-Proofs can leverage OpenCyc's common-sense reasoning for:
+[source,bash]
+----
+# Install the toolchain (matches the apt pin used by CI):
+sudo apt-get install -y agda agda-stdlib
 
-* Language family relationships
-* Geographic constraints on language distribution
-* Script compatibility with language features
+# Type-check the corpus exactly like CI + run the trust-base audit:
+just prove-check-all
 
-See `theories/opencyc_integration.agda` for details.
+# Individual steps:
+just prove-agda     # agda --safe / --without-K over proofs/theories
+just prove-audit    # trust-base.json ⇄ source manifest gate
+
+# Echidna pipeline (requires the echidna tool; CI does not depend on it):
+just prove          # echidna verify
+just prove-gen      # generate proof obligations
+----
+
+== Adding New Proofs
+
+1. Put total definitions in `InformationTheory/Foundations.agda` (or a new
+   `*/Foundations`-style safe module).
+2. If — and only if — a fact is genuinely unprovable in Agda over its
+   primitives, add it to `InformationTheory/Axioms.agda` with an
+   `ECHIDNA:trust ffi-fact :: <name>` (IEEE-754 true fact) or
+   `ECHIDNA:trust conjecture :: <name>` tag, update `trust-base.json` and
+   `POSTULATE-AUDIT.adoc` in the same PR, and add the file to
+   `theories`/`safe_modules` lists as appropriate.
+3. Register the module in `proofs/trust-base.json` (CI fails on any unlisted
+   `.agda` file).
+4. Run `just prove-check-all`.
+
+== Integration with OpenCyc (planned, not present)
+
+Earlier revisions of this README promised `theories/opencyc_integration.agda`
+and a `verified/` directory of Coq proofs; those files never landed and the
+references are removed. OpenCyc-based common-sense grounding remains a
+planned feature — see `../FUTURE.adoc` — with no formal artifacts to claim.
