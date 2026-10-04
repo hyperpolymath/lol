@@ -98,24 +98,24 @@ run_agda() {
 }
 PROBE_OK=0
 if [ -n "$STDLIB_DIR" ]; then
-    if run_agda --safe --compile-dir "$COMPILE_DIR" -i "$STDLIB_DIR" "$PROBE_DIR/Probe.agda"; then
+    if run_agda --safe --compile-dir "$COMPILE_DIR" -i "$STDLIB_DIR" -i "$PROBE_DIR" "$PROBE_DIR/Probe.agda"; then
         PROBE_OK=1
     else
         # Older packaged .agdai trees can reject a foreign --compile-dir
         # (interface staleness -> attempted write next to root-owned sources).
         # Retry without it before declaring the toolchain unusable.
         echo "note: probe failed with --compile-dir; retrying without (source-tree .agdai layout)"
-        if run_agda --safe -i "$STDLIB_DIR" "$PROBE_DIR/Probe.agda"; then
+        if run_agda --safe -i "$STDLIB_DIR" -i "$PROBE_DIR" "$PROBE_DIR/Probe.agda"; then
             PROBE_OK=1
             COMPILE_DIR=
             echo "note: continuing without --compile-dir"
         fi
     fi
 else
-    if run_agda --safe --compile-dir "$COMPILE_DIR" "$PROBE_DIR/Probe.agda"; then
+    if run_agda --safe --compile-dir "$COMPILE_DIR" -i "$PROBE_DIR" "$PROBE_DIR/Probe.agda"; then
         PROBE_OK=1
     else
-        run_agda --safe "$PROBE_DIR/Probe.agda" && { PROBE_OK=1; COMPILE_DIR=; }
+        run_agda --safe -i "$PROBE_DIR" "$PROBE_DIR/Probe.agda" && { PROBE_OK=1; COMPILE_DIR=; }
     fi
 fi
 if [ "$PROBE_OK" -ne 0 ]; then
