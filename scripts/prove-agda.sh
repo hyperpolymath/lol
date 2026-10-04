@@ -34,7 +34,7 @@ command -v "$AGDA" >/dev/null 2>&1 || {
     echo "::error::agda not found on PATH — install it (CI: apt-get install -y agda agda-stdlib; local: the same, or nix-shell -p agda agdaPackages.stdlib)"
     exit 1
 }
-"$AGDA" --version
+"$AGDA" --version 2>&1 || echo "note: agda --version failed (continuing — probe will assess)"
 
 # -- locate the stdlib ---------------------------------------------------------
 # Ubuntu/Debian's agda-stdlib installs pre-compiled sources *loose* under
@@ -81,12 +81,49 @@ open import Data.Nat using (ℕ)
 open import Data.Vec using (Vec)
 open import Data.Float using (Float)
 EOF
+# `set -e` must not swallow the diagnosis: every agda invocation is funnelled
+# through run_agda, which tees output to a per-call file and, on failure,
+# re-emits the first lines as an annotation (workflow commands reach the
+# checks API; raw logs are not always retrievable).
+run_agda() {
+    _out="$PROBE_DIR/agda.out"
+    _rc=0
+    "$AGDA" "$@" >"$_out" 2>&1 || _rc=$?
+    sed 's/^/    /' "$_out"
+    if [ $_rc -ne 0 ]; then
+        _ann=$(head -14 "$_out" | cut -c1-220 | sed 's/%/%25/g; s/::/%3A%3A/g' | awk '{printf "%s%%0A", $0}')
+        echo "::error::agda exit $_rc: ${_ann}"
+    fi
+    return $_rc
+}
+PROBE_OK=0
 if [ -n "$STDLIB_DIR" ]; then
-    "$AGDA" --safe --compile-dir "$COMPILE_DIR" -i "$STDLIB_DIR" "$PROBE_DIR/Probe.agda"
+    if run_agda --safe --compile-dir "$COMPILE_DIR" -i "$STDLIB_DIR" "$PROBE_DIR/Probe.agda"; then
+        PROBE_OK=1
+    else
+        # Older packaged .agdai trees can reject a foreign --compile-dir
+        # (interface staleness -> attempted write next to root-owned sources).
+        # Retry without it before declaring the toolchain unusable.
+        echo "note: probe failed with --compile-dir; retrying without (source-tree .agdai layout)"
+        if run_agda --safe -i "$STDLIB_DIR" "$PROBE_DIR/Probe.agda"; then
+            PROBE_OK=1
+            COMPILE_DIR=
+            echo "note: continuing without --compile-dir"
+        fi
+    fi
 else
-    "$AGDA" --safe --compile-dir "$COMPILE_DIR" "$PROBE_DIR/Probe.agda"
+    if run_agda --safe --compile-dir "$COMPILE_DIR" "$PROBE_DIR/Probe.agda"; then
+        PROBE_OK=1
+    else
+        run_agda --safe "$PROBE_DIR/Probe.agda" && { PROBE_OK=1; COMPILE_DIR=; }
+    fi
 fi
-echo "stdlib probe OK (Data.Nat / Data.Vec / Data.Float resolve under --safe)"
+if [ "$PROBE_OK" -ne 0 ]; then
+    echo "stdlib probe OK (Data.Nat / Data.Vec / Data.Float resolve under --safe)"
+else
+    echo "::error::stdlib probe failed — Agda cannot see the standard library (STDLIB_DIR='${STDLIB_DIR:-<none>}'); refusing to run the corpus against a broken toolchain"
+    exit 1
+fi
 
 # -- corpus ---------------------------------------------------------------------
 FILES=$(find "$THEORY_DIR" -name '*.agda' | LC_ALL=C sort)
@@ -106,15 +143,18 @@ for f in $FILES; do
     fi
     echo "--- checking $f ($flags) ---"
     if [ -n "$STDLIB_DIR" ]; then
-        if ! "$AGDA" $flags --compile-dir "$COMPILE_DIR" -i "$STDLIB_DIR" -i "$THEORY_DIR" "$f"; then
-            echo "::error::agda type-check FAILED for $f"
-            fail=1
-        fi
+        inc="-i $STDLIB_DIR -i $THEORY_DIR"
     else
-        if ! "$AGDA" $flags --compile-dir "$COMPILE_DIR" -i "$THEORY_DIR" "$f"; then
-            echo "::error::agda type-check FAILED for $f"
-            fail=1
-        fi
+        inc="-i $THEORY_DIR"
+    fi
+    if [ -n "$COMPILE_DIR" ]; then
+        cdir="--compile-dir $COMPILE_DIR"
+    else
+        cdir=
+    fi
+    if ! run_agda $flags $cdir $inc "$f"; then
+        echo "::error::agda type-check FAILED for $f"
+        fail=1
     fi
 done
 
