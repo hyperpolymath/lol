@@ -15,9 +15,9 @@
 
 module InformationTheory.Foundations where
 
-open import Data.Bool.Base using (Bool; true; false; T; if_then_else_)
+open import Data.Bool.Base using (T; if_then_else_)
 open import Data.Float public
-  using (Float; _+_; _*_; _÷_; -_; log; _≤ᵇ_; _≡ᵇ_; _<ᵇ_)
+  using (Float; _+_; _*_; _÷_; -_; log; _≤ᵇ_; _<ᵇ_)
 open import Data.Fin using (Fin)
 open import Data.Nat using (ℕ)
 open import Data.Vec using (Vec; []; _∷_; map; zipWith; lookup)
@@ -52,23 +52,26 @@ x ≥ᶠ y = y ≤ᶠ x
 log₂ : Float → Float
 log₂ v = log v ÷ log 2.0
 
--- −p·log₂ p with the usual 0·log 0 = 0 convention. The zero-test result is
--- an explicit Boolean argument so downstream theorems can case-analyse it
--- without stuck with-abstraction on a Float primitive; `plogp` is the entry
--- point used in definitions.
-plogpB : Float → Bool → Float
-plogpB v b = if b then 0.0 else - (v * log₂ v)
-
+-- −p·log₂ p with the usual 0·log 0 = 0 convention.
+--
+-- The guard is *strict positivity* (0.0 <ᵇ v), not a zero test. Reason (the
+-- PR #18 review lesson): under IEEE-754, `0 * log₂ 0 = 0 * (−∞) = NaN`, so a
+-- definition that branches on `v ≡ᵇ 0.0` computes NaN for ±0/−∞-adjacent
+-- inputs and any axiom of the shape "0 ≤ v → … → 0 ≤ −(v·log₂v)" becomes
+-- refutable at v = 0 — a refutable axiom inhabits ⊥ and proves everything,
+-- which is exactly the class of bug this rebuild set out to kill. With the
+-- strict guard, the out-of-domain side of the conditional *is* the value the
+-- convention prescribes (0.0), the function is NaN-safe for every input, and
+-- the accompanying FFI axiom (InformationTheory.Axioms) needs no side
+-- conditions beyond the in-band bounds. v = 1 gives −(1·0) = −0.0, and
+-- `0 ≤ᵇ −0.0` computes to true, so the boundary is consistent too.
 plogp : Float → Float
-plogp v = plogpB v (v ≡ᵇ 0.0)
+plogp v = if 0.0 <ᵇ v then - (v * log₂ v) else 0.0
 
--- p·log₂(p/q) for KL terms, guarding p = 0 (the q = 0 case legitimately
--- yields +∞ rather than a special value).
-klTermB : Float → Float → Bool → Float
-klTermB p q b = if b then 0.0 else p * log₂ (p ÷ q)
-
+-- p·log₂(p/q) for KL terms, guarded the same way. The q = 0 case with
+-- p > 0 legitimately yields p·log₂(+∞) = +∞ rather than a special value.
 klTerm : Float → Float → Float
-klTerm p q = klTermB p q (p ≡ᵇ 0.0)
+klTerm p q = if 0.0 <ᵇ p then p * log₂ (p ÷ q) else 0.0
 
 -- Pointwise (P + Q)/2, the JSD midpoint construction.
 midpointF : Float → Float → Float

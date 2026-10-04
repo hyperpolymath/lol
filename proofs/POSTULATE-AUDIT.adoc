@@ -11,42 +11,66 @@ The corpus was rebuilt around a quarantined trust base. All postulates now
 live in exactly one module — `InformationTheory/Axioms.agda`, compiled without
 `--safe` because Agda's `--safe` rejects `postulate` (Agda test
 `SafeFlagPostulate`) — and every one of them is tagged, named, classified,
-and budget-enforced against `{manifest}` by `scripts/audit-trust-base.py` in
+and budget-enforced against `{manifest}` by `scripts/audit-trust-base.sh` in
 CI (`.github/workflows/echidna-verify.yml`, issue #4).
 
-The audit now contains **6 postulates**:
+The audit now contains **5 postulates**:
 
-- **4 legitimate IEEE-754 `ffi-fact` axioms** (true facts about
+- **3 legitimate IEEE-754 `ffi-fact` axioms** (true facts about
   correctly-rounded float ops that Agda cannot derive from opaque primitives)
 - **2 `conjecture` axioms** (Gibbs' inequality and Lin's JSD bound lifted to
   floats — honest open debt, never used by the proven theorems)
 - **0 uninterpreted where-clause relations** — the 2026-04 correctness bug is
   structurally impossible now (see below)
 
+Every axiom is also mirrored with a full ledger entry in
+`docs/proof-debt.md` in the estate Trusted-Base Reduction Policy
+schema, and each `postulate` keyword in the quarantine carries the
+policy-mandated `AXIOM:`/`TRUSTED:` leading comment — `standards`'
+`check-trusted-base.sh` (the governance `Trusted-Base reduction policy` job)
+walks those blocks, so the two enforcement regimes (local budget audit +
+estate ledger) fail closed on the same atoms.
+
 [cols="3,2,3,2",options="header"]
 |===
 | Axiom | Class | Statement (roughly) | Why axiom
 
-| `log₂-nonpos` | ffi-fact | 0 ≤ v ≤ 1 → log₂ v ≤ 0 (IEEE, incl. v = 0 → −∞)
-| Float `log` is a runtime primitive; no real-analysis model in scope
-| `mul-sign` | ffi-fact | a ≥ 0 ∧ b ≤ 0 → −(a·b) ≥ 0 (correctly-rounded ×)
-| Sign/rounding law of IEEE multiplication
+| `plogp-nonneg` | ffi-fact | v ∈ [0,1] → 0 ≤ −(v·log₂ v) for the *guarded*
+  `Foundations.plogp` (out-of-guard side computes exactly 0.0)
+| Sign/rounding law of IEEE `log`, `÷`, `*`, `-` composition; Agda has no
+  real-analysis model over the opaque float builtins
 | `add-nonneg` | ffi-fact | a ≥ 0 ∧ b ≥ 0 → a + b ≥ 0
 | Same, for addition (no associativity is ever claimed)
 | `add-comm` | ffi-fact | a + b ≡ b + a (bitwise)
 | IEEE addition is commutative even under rounding; NaN payload propagation
   is symmetric
 | `kl-nonneg` | conjecture | Σ p·log₂(p/q) ≥ 0 for [0,1] entries summing to 1
-| Gibbs over reals; float rounding bridge is real proof work (Phase 2 open)
+| Gibbs over reals; float rounding bridge is real proof work (docs/proof-debt.md §(d))
 | `js-bounded` | conjecture | 0 ≤ JSD ≤ 1 (bits)
 | Lin (1991); same rounding bridge plus log-sum inequality
 |===
 
-**Discharged since the 2026-04 audit** (were postulates, now theorems proven
-in `InformationTheory` using only the four `ffi-fact` axioms):
+⚠️ **The NaN trap this design closed (PR #18 review, 2026-10-04).** An
+earlier revision postulated `mul-sign : 0 ≤ a → b ≤ 0 → 0 ≤ −(a·b)` and
+defined `plogp 0.0` via a non-strict zero test. Refutation: `log₂ 0 = −∞`,
+`0·(−∞) = NaN`, and `T (0 ≤ᵇ NaN)` is inhabited — the "axiom" was FALSE,
+so the corpus would have proven `⊥`. The fix is structural, not
+hypothesis-tightening: the guard `0.0 <ᵇ v` is *inside* `plogp`, so no
+caller or axiom can ever observe an unguarded product, and every axiom in
+the table above is now non-refutable by evaluation (each side of each
+conditional is checked: see the `klTerm-zero-left`, `plogp-zero`,
+`plogp-one-boundary` refl/T lemmas in `InformationTheory`). Lesson recorded
+here because it generalises: *an axiom about a partially-defined FFI term is
+a ⊥-generator waiting for one corner case; axiomatise guarded, total
+combinators instead.*
 
-* `entropy-nonneg` — per-entry guard `plogpB` + `sumF` induction +
-  `lookup-map` transport.
+**Discharged since the 2026-04 audit** (were postulates, now theorems proven
+in `InformationTheory` using only the three `ffi-fact` axioms):
+
+* `entropy-nonneg` — guarded entry term `plogp` + `sumF` induction +
+  `lookup-map` transport; the top-level theorem is genuinely *proven*, only
+  its per-entry fact is postulated (the split POSTULATE-AUDIT Phase 2
+  prescribed in 2026-04).
 * `js-symmetric` — `zipWith-comm` on the midpoint construction +
   `add-comm`; the swap never needs associativity.
 * The five float-arithmetic postulates from the 2024 baseline
@@ -82,7 +106,7 @@ layers of gate now prevent this class:
    `normalised` hypotheses expressed through the *computational* order
    `_≤ᶠ_ := T (… ≤ᵇ …)`, so each claim evaluates against the real IEEE
    comparison.
-2. `scripts/audit-trust-base.py` fails on any `where _≥_/_≤_ :` shape inside
+2. `scripts/audit-trust-base.sh` fails on any `where _≥_/_≤_ :` shape inside
    the trust base, and on any untagged or off-manifest postulate.
 
 == License note (unchanged)
@@ -97,12 +121,16 @@ newer PMPL-1.0-or-later), reflecting attributed third-party origin
 `_≤ᶠ_`/`_<ᶠ_`/`_≥ᶠ_` module-wide in `Foundations`; where-clause relations
 eliminated and regression-gated.
 
-*Phase 2 — prove the 4 theorems*: **PARTIAL 2026-10-04.** `js-symmetric` and
-`entropy-nonneg` are proven. `kl-nonneg` and `js-bounded` remain tagged
-`conjecture` axioms — each requires real-analysis lemmas (log-sum/Jensen)
-over a reals model plus a rounding bridge; `Probability`-style range +
-normalisation hypotheses now make their statements *true-as-stated modulo
-rounding* rather than vacuous.
+*Phase 2 — prove the 4 theorems*: **2/4 PROVEN, 2/4 budgeted debt
+2026-10-04.** `js-symmetric` and `entropy-nonneg` are proven top-level
+theorems (entropy: induction + `lookup-map` transport over the single
+per-entry `plogp-nonneg` ffi-fact — the "float lemma as auxiliary
+postulate, top-level theorem proven" split this audit prescribed in 2026-04).
+`kl-nonneg` and `js-bounded` remain tagged `conjecture` axioms with owner and
+deadline in `docs/proof-debt.md` §(d) — each requires
+real-analysis lemmas (log-sum/Jensen) over a reals model plus a rounding
+bridge; `Distribution`'s range + normalisation hypotheses now make their
+statements *true-as-stated modulo rounding* rather than vacuous.
 
 *Phase 3 — convert FFI postulates to trust-tagged axioms*: **DONE.** The
 audit asked for `@trust(level=axiom, prover=ffi, since=...)` annotations;

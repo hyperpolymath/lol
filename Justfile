@@ -157,31 +157,11 @@ prove:
 # Type-check the Agda corpus exactly like CI (.github/workflows/echidna-verify.yml).
 # Needs: apt install agda agda-stdlib  (or nix-shell -p agda agdaPackages.stdlib)
 prove-agda:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    command -v agda >/dev/null 2>&1 || { echo "agda not found — install it (apt install agda agda-stdlib) first"; exit 1; }
-    failed=""
-    while IFS= read -r f; do
-      if grep -qE '\{-# OPTIONS[^#]*--safe' "$f"; then
-        flags="--safe --without-K"
-      else
-        flags="--without-K"
-        echo "note: $f is the quarantined trust base (compiled without --safe by design)"
-      fi
-      echo "--- checking $f ($flags) ---"
-      if ! agda $flags -i proofs/theories "$f"; then
-        failed="$failed$f"$'\n'
-      fi
-    done < <(find proofs/theories -name '*.agda' | sort)
-    if [ -n "$failed" ]; then
-      printf 'FAILED:\n%s' "$failed"
-      exit 1
-    fi
-    echo "All Agda proofs type-checked cleanly."
+    sh scripts/prove-agda.sh
 
 # Audit the trust base (postulate quarantine vs proofs/trust-base.json)
 prove-audit:
-    python3 scripts/audit-trust-base.py
+    sh scripts/audit-trust-base.sh
 
 # Local mirror of the CI gate: type-check + trust-base audit
 prove-check-all: prove-agda prove-audit

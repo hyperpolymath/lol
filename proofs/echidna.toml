@@ -24,7 +24,7 @@ stdlib = true
 # `--safe` applies to every module EXCEPT the quarantined trust base
 # (theories/InformationTheory/Axioms.agda, which holds the ECHIDNA:trust
 # postulates and is checked with --without-K only). The split is enforced by
-# scripts/audit-trust-base.py; see proofs/README.adoc.
+# scripts/audit-trust-base.sh; see proofs/README.adoc.
 flags = ["--safe", "--without-K"]
 
 [provers.coq]

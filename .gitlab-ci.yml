@@ -176,37 +176,15 @@ proof-verification:
     DEBIAN_FRONTEND: "noninteractive"
   script:
     - apt-get update -qq
-    - apt-get install -y -qq --no-install-recommends agda agda-stdlib python3 findutils
-    - |
-      set -eu
-      mkdir -p "$HOME/.agda/libraries"
-      touch "$HOME/.agda/libraries/estate-stdlib" "$HOME/.agda/defaults"
-      found=0
-      for lib in $(find /usr/share/agda-stdlib -maxdepth 2 -name '*.agda-lib' | sort); do
-        echo "$lib" >> "$HOME/.agda/libraries/estate-stdlib"
-        name=$(awk '$1=="name:"{print $2; exit}' "$lib")
-        [ -n "$name" ] && echo "$name" >> "$HOME/.agda/defaults"
-        found=1
-      done
-      [ "$found" = 1 ] || { echo "ERROR: no agda-stdlib .agda-lib found"; exit 1; }
-    - |
-      set -eu
-      FILES=$(find proofs/theories -name '*.agda' | sort)
-      [ -n "$FILES" ] || { echo "ERROR: empty Agda corpus under proofs/theories"; exit 1; }
-      failed=""
-      for f in $FILES; do
-        if grep -qE '\{-# OPTIONS[^#]*--safe' "$f"; then flags="--safe --without-K"; else flags="--without-K"; fi
-        echo "--- checking $f ($flags) ---"
-        agda $flags -i proofs/theories "$f" || failed="$failed $f"
-      done
-      [ -z "$failed" ] || { echo "FAILED:$failed"; exit 1; }
-    - python3 scripts/audit-trust-base.py
+    - apt-get install -y -qq --no-install-recommends agda agda-stdlib
+    - sh scripts/prove-agda.sh
+    - sh scripts/audit-trust-base.sh
   allow_failure: true
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       changes:
         - proofs/**
-        - scripts/audit-trust-base.py
+        - scripts/audit-trust-base.sh
         - .gitlab-ci.yml
 
 # =============================================================================
