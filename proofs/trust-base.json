@@ -1,0 +1,29 @@
+{
+  "comment": [
+    "Machine-readable trust-base manifest for proofs/theories (issue #4).",
+    "Enforced by scripts/audit-trust-base.py, which runs in CI",
+    "(.github/workflows/echidna-verify.yml) and via `just prove-audit`.",
+    "Any change to the Agda corpus postulates, modules, or --safe status",
+    "must land in the same PR as the matching change here and an entry in",
+    "proofs/POSTULATE-AUDIT.adoc."
+  ],
+  "schema": 1,
+  "quarantine": "proofs/theories/InformationTheory/Axioms.agda",
+  "safe_modules": [
+    "proofs/theories/InformationTheory.agda",
+    "proofs/theories/InformationTheory/Foundations.agda"
+  ],
+  "axioms": [
+    { "name": "log₂-nonpos", "class": "ffi-fact" },
+    { "name": "mul-sign", "class": "ffi-fact" },
+    { "name": "add-nonneg", "class": "ffi-fact" },
+    { "name": "add-comm", "class": "ffi-fact" },
+    { "name": "kl-nonneg", "class": "conjecture" },
+    { "name": "js-bounded", "class": "conjecture" }
+  ],
+  "class_budget": {
+    "ffi-fact": 4,
+    "conjecture": 2
+  },
+  "total_budget": 6
+}

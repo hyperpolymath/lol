@@ -1,0 +1,191 @@
+# This workflow is managed by gh actions-lock.
+# SPDX-License-Identifier: MPL-2.0
+# SPDX-FileCopyrightText: 2026 Jonathan D.A. Jewell and Contributors
+#
+# Echidna proof verification — type-checks proofs/theories with Agda and
+# gates the quarantined trust base against proofs/trust-base.json.
+#
+# Provenance (issue #4): ported from hyperpolymath/standards
+# .github/workflows/echidna-verify.yml job "Agda — lol/proofs", with the
+# paths rebased to this repo (proofs/theories, not lol/proofs/theories).
+# That copy there is now a presence-guard no-op because the corpus was
+# evicted here; this workflow is the authoritative gate, so unlike the
+# standards original — which downgraded failures to ::warning:: — a failed
+# type-check is a HARD failure here.
+#
+# Design notes carried from issue #4 deliberately:
+#   1. No workflow-level `paths:` filter on pull_request. If this context is
+#      ever made required, a workflow-level filter means the workflow never
+#      triggers and the required context never reports, deadlocking every
+#      PR. Change-scoping happens in the job-level `detect-proof-changes`
+#      guard, so a proof-irrelevant PR still gets a (skipped) check run.
+#   2. Never exit 0 on a missing corpus: the file count is asserted before
+#      anything is reported, so this repo cannot inherit the fail-open gate
+#      that hid the strand in standards.
+
+name: Echidna Proof Verification
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'proofs/**'
+      - 'scripts/audit-trust-base.py'
+      - '.github/workflows/echidna-verify.yml'
+  # NO path filter on pull_request — see design note 1 above.
+  pull_request:
+  schedule:
+    # Weekly re-verification catches toolchain/stdlib drift between changes
+    # to this tree (the failure mode that made the standards copy rot).
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+# Estate guardrail: cancel superseded runs so re-pushes / rebased PR updates
+# do not pile up queued runs against the shared account-wide Actions
+# concurrency pool. This workflow is read-only (check + log artifact), so
+# cancelling a superseded run is always safe.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  detect-proof-changes:
+    timeout-minutes: 5
+    name: Detect proof changes
+    runs-on: ubuntu-latest
+    outputs:
+      proofs: ${{ steps.check.outputs.proofs }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Did this change touch any proof source?
+        id: check
+        shell: bash
+        run: |
+          # Non-PR events (push, schedule, dispatch) always verify.
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            echo "proofs=true" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          base="${{ github.event.pull_request.base.sha }}"
+          head="${{ github.event.pull_request.head.sha }}"
+          if ! changed=$(git diff --name-only "$base" "$head"); then
+            echo "::warning::diff failed; verifying conservatively"
+            echo "proofs=true" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          if printf '%s\n' "$changed" | grep -qE '^(proofs/|scripts/audit-trust-base\.py$|\.github/workflows/echidna-verify\.yml$)'; then
+            echo "proofs=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "proofs=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  agda:
+    name: Agda — proofs/theories
+    needs: detect-proof-changes
+    if: needs.detect-proof-changes.outputs.proofs == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install Agda + stdlib
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends agda agda-stdlib
+          agda --version
+
+      - name: Register stdlib for Agda
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.agda/libraries"
+          touch "$HOME/.agda/libraries/estate-stdlib" "$HOME/.agda/defaults"
+          found=0
+          while IFS= read -r lib; do
+            [ -n "$lib" ] || continue
+            grep -qxF "$lib" "$HOME/.agda/libraries/estate-stdlib" \
+              || echo "$lib" >> "$HOME/.agda/libraries/estate-stdlib"
+            name=$(awk '$1=="name:"{print $2; exit}' "$lib")
+            if [ -n "$name" ] && ! grep -qxF "$name" "$HOME/.agda/defaults"; then
+              echo "$name" >> "$HOME/.agda/defaults"
+            fi
+            found=1
+          done < <(find /usr/share/agda-stdlib -maxdepth 2 -name '*.agda-lib' 2>/dev/null | sort)
+          if [ "$found" != 1 ]; then
+            echo "::error::no *.agda-lib found under /usr/share/agda-stdlib — the agda-stdlib package layout changed; fix this step before trusting the gate"
+            exit 1
+          fi
+          echo "--- registered ---"
+          cat "$HOME/.agda/libraries/estate-stdlib" "$HOME/.agda/defaults"
+
+      - name: Probe stdlib visibility
+        run: |
+          set -euo pipefail
+          probe=$(mktemp -d)
+          cat > "$probe/Probe.agda" <<'EOF'
+          module Probe where
+          open import Data.Nat using (ℕ)
+          open import Data.Vec using (Vec)
+          open import Data.Float using (Float)
+          EOF
+          agda --safe "$probe/Probe.agda" >/dev/null
+          echo "stdlib probe OK (Data.Nat / Data.Vec / Data.Float resolve under --safe)"
+
+      - name: "Corpus presence (fail-closed, issue #4 note 2)"
+        run: |
+          set -euo pipefail
+          mapfile -t FILES < <(find proofs/theories -name '*.agda' | sort)
+          echo "Agda corpus files: ${#FILES[@]}"
+          printf '  %s\n' "${FILES[@]}"
+          if [ "${#FILES[@]}" -lt 1 ]; then
+            echo "::error::proofs/theories contains no .agda files — refusing to report success with an empty corpus"
+            exit 1
+          fi
+
+      - name: Type-check proofs
+        run: |
+          set -eo pipefail
+          failed=""
+          : > agda-verify.log
+          while IFS= read -r f; do
+            if grep -qE '\{-# OPTIONS[^#]*--safe' "$f"; then
+              flags="--safe --without-K"
+            else
+              flags="--without-K"
+              echo "note: $f is the quarantined trust base (compiled without --safe by design)"
+            fi
+            echo "--- checking $f ($flags) ---"
+            if ! agda $flags -i proofs/theories "$f" >> agda-verify.log 2>&1; then
+              echo "::error::agda type-check FAILED for $f"
+              failed="$failed$f"$'\n'
+              tail -n 40 agda-verify.log
+            fi
+          done < <(find proofs/theories -name '*.agda' | sort)
+          if [ -n "$failed" ]; then
+            printf 'Failed files:\n%s' "$failed"
+            exit 1
+          fi
+          echo "All Agda proofs type-checked cleanly under the enforced flags."
+
+      - name: Trust-base audit
+        run: python3 scripts/audit-trust-base.py
+
+      - name: Postulate census (advisory listing for the run log)
+        run: |
+          echo "=== Postulates in proofs/theories ==="
+          grep -rn "^\s*postulate" proofs/theories/ || echo "none"
+          echo "=== Trust tags ==="
+          grep -rn "ECHIDNA:trust" proofs/theories/ || echo "none"
+
+      - name: Upload log
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: agda-verify-log
+          path: agda-verify.log
+          if-no-files-found: ignore
