@@ -65,6 +65,23 @@ if [ -z "$STDLIB_DIR" ]; then
     done
 fi
 if [ -n "$STDLIB_DIR" ]; then
+    # Any stdlib module whose packaged .agdai fingerprint no longer matches
+    # gets re-checked and its interface rewritten *next to the source* —
+    # --compile-dir only moves executables, not .agdai files. On the apt
+    # layout (/usr/share/agda-stdlib, root-owned) that is a hard
+    # "removeLink: permission denied" failure. If the tree is not writable
+    # for this user, work from a writable mirror instead.
+    if [ ! -w "$STDLIB_DIR" ]; then
+        MIRROR="$HOME/.cache/lol-agda-stdlib"
+        if [ ! -d "$MIRROR/Data" ]; then
+            mkdir -p "$MIRROR"
+            tar cf - -C "$STDLIB_DIR" . 2>/dev/null | tar xf - -C "$MIRROR" 2>/dev/null \
+                || cp -a "$STDLIB_DIR/." "$MIRROR/"
+        fi
+        chmod -R u+w "$MIRROR" 2>/dev/null || true
+        echo "note: stdlib at $STDLIB_DIR not user-writable; mirroring to $MIRROR (interface rewrites land there)"
+        STDLIB_DIR="$MIRROR"
+    fi
     echo "Using stdlib sources from: $STDLIB_DIR ($(find "$STDLIB_DIR" -name '*.agda' | wc -l) modules)"
 fi
 
