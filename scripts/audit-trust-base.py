@@ -151,7 +151,8 @@ def main() -> int:
         if not spath.is_file():
             continue  # already reported via `missing`
         s = spath.read_text(encoding="utf-8")
-        if "--safe" not in s:
+        opts = re.findall(r"\{-#\s*OPTIONS([^#]*)#-\}", s)
+        if not any(re.search(r"(^|\s)--safe(\s|$)", o) for o in opts):
             err(f"{name}: safe module must carry `--safe` in its OPTIONS pragma")
 
     # manifest ⇄ source set equality
