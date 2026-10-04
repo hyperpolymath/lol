@@ -11,8 +11,10 @@
   "schema": 1,
   "quarantine": "proofs/theories/InformationTheory/Axioms.agda",
   "safe_modules": [
-    "proofs/theories/InformationTheory.agda",
     "proofs/theories/InformationTheory/Foundations.agda"
+  ],
+  "derived_modules": [
+    "proofs/theories/InformationTheory.agda"
   ],
   "axioms": [
     { "name": "plogp-nonneg", "class": "ffi-fact" },

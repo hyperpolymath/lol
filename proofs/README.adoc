@@ -13,14 +13,18 @@ type-checked in CI by
 
 == Verified Tree and Trust Layering
 
-The corpus is split so that everything load-bearing checks under Agda's
-`--safe` flag, and the irreducible trust base is quarantined and audited:
+The corpus is split so that all definitions check under Agda's `--safe`
+flag, and the irreducible trust base is quarantined and audited. Theorems
+live in a registered *derived* header: Agda's flag inheritance forbids a
+`--safe` module from importing the quarantine, so a `--safe` claim there
+would mean "no FFI axiom used" — and the audit enforces the honesty of
+every file's claim in both directions:
 
 [source]
 ----
 proofs/
 ├── theories/
-│   ├── InformationTheory.agda            # public module: theorems (agda --safe)
+│   ├── InformationTheory.agda            # public module: theorems (derived: no postulate, imports Axioms)
 │   ├── InformationTheory/
 │   │   ├── Foundations.agda              # total, postulate-free definitions (agda --safe)
 │   │   └── Axioms.agda                   # THE ONLY quarantine holding `postulate`
@@ -39,7 +43,10 @@ Rules enforced by CI (`scripts/audit-trust-base.sh`, one of the workflow steps):
 * every axiom carries an `ECHIDNA:trust <class> :: <name>` tag and must match
   `trust-base.json` exactly — adding, removing, renaming, or reclassifying an
   axiom without updating the manifest and this audit fails the build;
-* every safe module must keep `{-# OPTIONS --safe ... #-}`;
+* every safe module must keep `{-# OPTIONS --safe ... #-}`, and every
+  `derived_modules` entry must *not* claim it (claiming it while importing
+  axioms is Agda-illegal; dropping the claim after discharging the axioms is
+  how a module graduates into `safe_modules`);
 * the corpus must be non-empty (a gate with nothing to check is no gate);
 * separately from the local audit, the estate `Trusted-Base reduction policy`
   job (`standards/scripts/check-trusted-base.sh`) walks the comment block

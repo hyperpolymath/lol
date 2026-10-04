@@ -6,7 +6,10 @@
 -- This is the ONLY module in the corpus allowed to contain `postulate`.
 -- It is deliberately compiled WITHOUT `--safe`: `--safe` rejects `postulate`
 -- outright (Agda test SafeFlagPostulate), so the quarantine is what lets an
--- honest trust base coexist with a hard `--safe` gate on everything else.
+-- honest trust base coexist with a hard `--safe` certificate on the
+-- definitions layer (Foundations); the theorem header importing these axioms
+-- is registered as `derived` — postulate-free by census, --safe-forbidden by
+-- Agda's flag inheritance.
 -- Enforced by .github/workflows/echidna-verify.yml (issue #4):
 --
 --   * `grep postulate` outside this file is a hard CI failure;

@@ -82,6 +82,9 @@ awk '
   /"safe_modules":/     { in_safe = 1; next }
   in_safe && /]/         { in_safe = 0; next }
   in_safe && /"/          { gsub(/[",]/,""); gsub(/^ +| +$/,""); print "S\t" $0; next }
+  /"derived_modules":/  { in_derived = 1; next }
+  in_derived && /]/      { in_derived = 0; next }
+  in_derived && /"/       { gsub(/[",]/,""); gsub(/^ +| +$/,""); print "D\t" $0; next }
   /"name":/ && /"class":/ { print "A\t" val($0,"name") "\t" val($0,"class"); next }
   /"class_budget":/       { next }
   /"(ffi-fact|conjecture)":/ {
@@ -98,16 +101,17 @@ if [ -z "$QUARANTINE" ]; then
     QUARANTINE="NONE"
 fi
 awk -F'\t' '$1=="S"{print $2}' "$TMP/manifest.tsv" > "$TMP/safe-modules"
+awk -F'\t' '$1=="D"{print $2}' "$TMP/manifest.tsv" > "$TMP/derived-modules"
 awk -F'\t' '$1=="A"{print $2 " " $3}' "$TMP/manifest.tsv" | LC_ALL=C sort > "$TMP/manifest-axioms"
 MANIFEST_TOTAL=$(awk -F'\t' '$1=="T"{print $2; exit}' "$TMP/manifest.tsv")
 SAFE_COUNT=$(wc -l < "$TMP/safe-modules" | tr -d ' ')
 
 # listed set ⇄ on-disk set
-{ printf '%s\n' "$QUARANTINE"; cat "$TMP/safe-modules"; } | sed 's|^/||' | LC_ALL=C sort -u > "$TMP/listed"
+{ printf '%s\n' "$QUARANTINE"; cat "$TMP/safe-modules" "$TMP/derived-modules"; } | sed 's|^/||' | LC_ALL=C sort -u > "$TMP/listed"
 unlisted=$(LC_ALL=C comm -23 "$TMP/on-disk" "$TMP/listed")
 missing=$(LC_ALL=C comm -13 "$TMP/on-disk" "$TMP/listed")
 if [ -n "$unlisted" ]; then
-    err ".agda file(s) not registered in proofs/trust-base.json: $(printf '%s' "$unlisted" | tr '\n' ' ') — add to safe_modules (or extend the quarantine deliberately) in the same PR"
+    err ".agda file(s) not registered in proofs/trust-base.json: $(printf '%s' "$unlisted" | tr '\n' ' ') — add to safe_modules/derived_modules (or extend the quarantine deliberately) in the same PR"
 fi
 if [ -n "$missing" ]; then
     err "manifest lists files that do not exist: $(printf '%s' "$missing" | tr '\n' ' ')"
@@ -194,6 +198,18 @@ while IFS= read -r name; do
         err "$name: safe module must carry \`--safe\` in its OPTIONS pragma"
     fi
 done < "$TMP/safe-modules"
+
+# -- derived modules: postulate-free but axiom-consuming headers. Agda's
+# flag-inheritance rule ("Importing module not using the --safe flag from a
+# module which does", live CI evidence) makes a --safe top file that imports
+# the quarantine a hard error, so those headers sit beside the quarantine,
+# carry NO --safe claim, and are still census-checked for `postulate` above.
+while IFS= read -r name; do
+    [ -f "$ROOT/$name" ] || continue
+    if grep -qE '\{-# OPTIONS[^#]*--safe' "$ROOT/$name"; then
+        err "$name: registered as derived (axiom-importing) — it must NOT claim --safe; Agda would reject the import, so either discharge its axioms (then move it to safe_modules) or keep the honest flag"
+    fi
+done < "$TMP/derived-modules"
 
 # -- set equality + budgets ----------------------------------------------------
 cut -d' ' -f1 "$TMP/source-axioms" | LC_ALL=C sort -u > "$TMP/src-names"

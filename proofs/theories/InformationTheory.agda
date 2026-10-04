@@ -11,7 +11,19 @@
 --
 --   InformationTheory.Foundations   --safe     total, postulate-free definitions
 --   InformationTheory.Axioms        not safe  the only quarantine holding `postulate`
---   InformationTheory (this module) --safe     theorems + public surface
+--   InformationTheory (this module) not safe  theorems + public surface
+--
+-- This header cannot claim `--safe` even though it contains no postulates:
+-- Agda's flag-inheritance rule rejects safe modules importing anything that
+-- is not safe ("Importing module ... not using the --safe flag from a module
+-- which does") — which is itself the proof that a `--safe` claim here would
+-- mean "no FFI axioms used at all". The postulate-free property this file
+-- can claim, and does, is enforced by the trust-base census (a `postulate`
+-- outside Axioms.agda is a hard CI failure), and Foundations carries the
+-- genuine `--safe` certificate for every definition, guard and relation the
+-- theorems consume. The audit registers this file under
+-- `derived_modules` in proofs/trust-base.json (registered, flagged, and
+-- forbidden from silently claiming --safe without discharging its axioms).
 --
 -- Both POSTULATE-AUDIT "provable" obligations are discharged here:
 -- `entropy-nonneg` by induction over the vector sum from the per-entry
@@ -19,7 +31,7 @@
 -- with `add-comm`. Neither proof touches the `conjecture` class —
 -- `kl-nonneg`/`js-bounded` stay open and are only re-exported as-is so
 -- consumers see their trust level.
-{-# OPTIONS --safe --without-K #-}
+{-# OPTIONS --without-K #-}
 
 module InformationTheory where
 
