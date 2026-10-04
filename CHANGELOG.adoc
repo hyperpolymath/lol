@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 == [Unreleased]
 
 === Added
+- Trust-base redesign after PR #18 review: `plogp`/`klTerm` now carry a
+  strict positivity guard (`0.0 <ᵇ v`) internally, making them NaN-safe by
+  construction; the refutable `mul-sign`/`log₂-nonpos` pair is replaced by a
+  single honest per-entry axiom `plogp-nonneg` (trust base 6 → 5 postulates)
+- `docs/proof-debt.md` — estate Trusted-Base Reduction Policy ledger for the
+  corpus (§(a) discharged, §(c) necessary axioms, §(d) dated conjectures),
+  satisfying the governance `Trusted-base reduction policy` job (was red on
+  main since the pre-2026 corpus) via `AXIOM:`/`TRUSTED:` leading comments on
+  each `postulate` block
 - Agda proof verification CI (`.github/workflows/echidna-verify.yml`,
   resolving issue #4): hard-failing `agda --safe` type-check over
   `proofs/theories`, fail-closed corpus assertion, and a trust-base audit
@@ -32,6 +41,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - AsciiDoc documentation
 
 === Changed
+- CI gate scripts are now POSIX shell (`scripts/prove-agda.sh`,
+  `scripts/audit-trust-base.sh`) — Python is banned in estate repos by the
+  language policy; the gate flags `::error::` annotations per failing file,
+  probes the apt `agda-stdlib` layout (which ships no `.agda-lib` manifest),
+  pins correctness jobs to `ubuntu-24.04` (not floating `ubuntu-latest`),
+  and treats a failed diff as "verify" conservatively
 - `Distribution` now carries range and normalisation hypotheses with a
   computational float order `_≤ᶠ_` (fixes the vacuous where-clause relations
   identified in POSTULATE-AUDIT; refutable-as-stated versions removed)

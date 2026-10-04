@@ -13,14 +13,18 @@ type-checked in CI by
 
 == Verified Tree and Trust Layering
 
-The corpus is split so that everything load-bearing checks under Agda's
-`--safe` flag, and the irreducible trust base is quarantined and audited:
+The corpus is split so that all definitions check under Agda's `--safe`
+flag, and the irreducible trust base is quarantined and audited. Theorems
+live in a registered *derived* header: Agda's flag inheritance forbids a
+`--safe` module from importing the quarantine, so a `--safe` claim there
+would mean "no FFI axiom used" — and the audit enforces the honesty of
+every file's claim in both directions:
 
 [source]
 ----
 proofs/
 ├── theories/
-│   ├── InformationTheory.agda            # public module: theorems (agda --safe)
+│   ├── InformationTheory.agda            # public module: theorems (derived: no postulate, imports Axioms)
 │   ├── InformationTheory/
 │   │   ├── Foundations.agda              # total, postulate-free definitions (agda --safe)
 │   │   └── Axioms.agda                   # THE ONLY quarantine holding `postulate`
@@ -33,14 +37,22 @@ proofs/
 └── echidna.toml                          # multi-prover pipeline config
 ----
 
-Rules enforced by CI (`scripts/audit-trust-base.py`, one of the workflow steps):
+Rules enforced by CI (`scripts/audit-trust-base.sh`, one of the workflow steps):
 
 * `postulate` may only appear in `InformationTheory/Axioms.agda`;
 * every axiom carries an `ECHIDNA:trust <class> :: <name>` tag and must match
   `trust-base.json` exactly — adding, removing, renaming, or reclassifying an
   axiom without updating the manifest and this audit fails the build;
-* every safe module must keep `{-# OPTIONS --safe ... #-}`;
-* the corpus must be non-empty (a gate with nothing to check is no gate).
+* every safe module must keep `{-# OPTIONS --safe ... #-}`, and every
+  `derived_modules` entry must *not* claim it (claiming it while importing
+  axioms is Agda-illegal; dropping the claim after discharging the axioms is
+  how a module graduates into `safe_modules`);
+* the corpus must be non-empty (a gate with nothing to check is no gate);
+* separately from the local audit, the estate `Trusted-Base reduction policy`
+  job (`standards/scripts/check-trusted-base.sh`) walks the comment block
+  directly above each `postulate` keyword for an `AXIOM:`/`TRUSTED:` marker —
+  keep those leading blocks (no blank line between marker and keyword) and
+  mirror every entry in `docs/proof-debt.md`.
 
 `--safe` is not decoration: since Agda 2.6.1 it rejects `postulate` outright,
 which is why the trust base is a separate non-safe module rather than
@@ -52,8 +64,9 @@ see POSTULATE-AUDIT.adoc).
 
 *Proven in `InformationTheory`* (from IEEE-754 `ffi-fact` axioms only):
 
-* `entropy-nonneg` — H ≥ 0 for entries in [0, 1], via per-entry
-  `0·log 0 = 0` guarding and a `sumF` induction.
+* `entropy-nonneg` — H ≥ 0 for entries in [0, 1], via the guarded, NaN-safe
+  entry term `plogp` (its non-negativity on [0,1] is the one `ffi-fact`
+  consumed) and a `sumF` induction transporting through `lookup-map`.
 * `js-symmetric` — JSD(P,Q) ≡ JSD(Q,P), from commutativity of float addition
   and the symmetric midpoint construction.
 * Vector plumbing (`lookup-map`, `sumF-nonneg`, `zipWith-cong₂`,

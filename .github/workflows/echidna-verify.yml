@@ -11,7 +11,11 @@
 # That copy there is now a presence-guard no-op because the corpus was
 # evicted here; this workflow is the authoritative gate, so unlike the
 # standards original — which downgraded failures to ::warning:: — a failed
-# type-check is a HARD failure here.
+# type-check is a HARD failure here. The first run of this port proved why
+# that matters: Ubuntu's apt agda-stdlib ships no .agda-lib manifest at all,
+# so the standards-style "find *.agda-lib" registration silently finds
+# nothing; scripts/prove-agda.sh detects both layouts and FAILS when it
+# can't see the stdlib instead of proceeding vacuously.
 #
 # Design notes carried from issue #4 deliberately:
 #   1. No workflow-level `paths:` filter on pull_request. If this context is
@@ -22,6 +26,12 @@
 #   2. Never exit 0 on a missing corpus: the file count is asserted before
 #      anything is reported, so this repo cannot inherit the fail-open gate
 #      that hid the strand in standards.
+#
+# Runner is pinned to ubuntu-24.04 rather than ubuntu-latest: the gate pins
+# its toolchain to apt agda 2.6.4.x + agda-stdlib 1.7.2 semantics (see
+# proofs/echidna.toml), and ubuntu-latest moves to Ubuntu 26 on 2026-10-19
+# (runner-images #14748). Upgrading means deliberately re-verifying the
+# corpus against the newer stdlib, not getting it in via a label rename.
 
 name: Echidna Proof Verification
 
@@ -30,7 +40,8 @@ on:
     branches: [main]
     paths:
       - 'proofs/**'
-      - 'scripts/audit-trust-base.py'
+      - 'scripts/prove-agda.sh'
+      - 'scripts/audit-trust-base.sh'
       - '.github/workflows/echidna-verify.yml'
   # NO path filter on pull_request — see design note 1 above.
   pull_request:
@@ -55,7 +66,7 @@ jobs:
   detect-proof-changes:
     timeout-minutes: 5
     name: Detect proof changes
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       proofs: ${{ steps.check.outputs.proofs }}
     steps:
@@ -77,7 +88,7 @@ jobs:
             echo "::warning::diff failed; verifying conservatively"
             echo "proofs=true" >> "$GITHUB_OUTPUT"; exit 0
           fi
-          if printf '%s\n' "$changed" | grep -qE '^(proofs/|scripts/audit-trust-base\.py$|\.github/workflows/echidna-verify\.yml$)'; then
+          if printf '%s\n' "$changed" | grep -qE '^(proofs/|scripts/(prove-agda|audit-trust-base)\.sh$|\.github/workflows/echidna-verify\.yml$)'; then
             echo "proofs=true" >> "$GITHUB_OUTPUT"
           else
             echo "proofs=false" >> "$GITHUB_OUTPUT"
@@ -87,8 +98,8 @@ jobs:
     name: Agda — proofs/theories
     needs: detect-proof-changes
     if: needs.detect-proof-changes.outputs.proofs == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -100,80 +111,12 @@ jobs:
           sudo apt-get install -y --no-install-recommends agda agda-stdlib
           agda --version
 
-      - name: Register stdlib for Agda
-        run: |
-          set -euo pipefail
-          mkdir -p "$HOME/.agda/libraries"
-          touch "$HOME/.agda/libraries/estate-stdlib" "$HOME/.agda/defaults"
-          found=0
-          while IFS= read -r lib; do
-            [ -n "$lib" ] || continue
-            grep -qxF "$lib" "$HOME/.agda/libraries/estate-stdlib" \
-              || echo "$lib" >> "$HOME/.agda/libraries/estate-stdlib"
-            name=$(awk '$1=="name:"{print $2; exit}' "$lib")
-            if [ -n "$name" ] && ! grep -qxF "$name" "$HOME/.agda/defaults"; then
-              echo "$name" >> "$HOME/.agda/defaults"
-            fi
-            found=1
-          done < <(find /usr/share/agda-stdlib -maxdepth 2 -name '*.agda-lib' 2>/dev/null | sort)
-          if [ "$found" != 1 ]; then
-            echo "::error::no *.agda-lib found under /usr/share/agda-stdlib — the agda-stdlib package layout changed; fix this step before trusting the gate"
-            exit 1
-          fi
-          echo "--- registered ---"
-          cat "$HOME/.agda/libraries/estate-stdlib" "$HOME/.agda/defaults"
-
-      - name: Probe stdlib visibility
-        run: |
-          set -euo pipefail
-          probe=$(mktemp -d)
-          cat > "$probe/Probe.agda" <<'EOF'
-          module Probe where
-          open import Data.Nat using (ℕ)
-          open import Data.Vec using (Vec)
-          open import Data.Float using (Float)
-          EOF
-          agda --safe "$probe/Probe.agda" >/dev/null
-          echo "stdlib probe OK (Data.Nat / Data.Vec / Data.Float resolve under --safe)"
-
-      - name: "Corpus presence (fail-closed, issue #4 note 2)"
-        run: |
-          set -euo pipefail
-          mapfile -t FILES < <(find proofs/theories -name '*.agda' | sort)
-          echo "Agda corpus files: ${#FILES[@]}"
-          printf '  %s\n' "${FILES[@]}"
-          if [ "${#FILES[@]}" -lt 1 ]; then
-            echo "::error::proofs/theories contains no .agda files — refusing to report success with an empty corpus"
-            exit 1
-          fi
-
-      - name: Type-check proofs
-        run: |
-          set -eo pipefail
-          failed=""
-          : > agda-verify.log
-          while IFS= read -r f; do
-            if grep -qE '\{-# OPTIONS[^#]*--safe' "$f"; then
-              flags="--safe --without-K"
-            else
-              flags="--without-K"
-              echo "note: $f is the quarantined trust base (compiled without --safe by design)"
-            fi
-            echo "--- checking $f ($flags) ---"
-            if ! agda $flags -i proofs/theories "$f" >> agda-verify.log 2>&1; then
-              echo "::error::agda type-check FAILED for $f"
-              failed="$failed$f"$'\n'
-              tail -n 40 agda-verify.log
-            fi
-          done < <(find proofs/theories -name '*.agda' | sort)
-          if [ -n "$failed" ]; then
-            printf 'Failed files:\n%s' "$failed"
-            exit 1
-          fi
-          echo "All Agda proofs type-checked cleanly under the enforced flags."
+      - name: Type-check proofs (stdlib probe + fail-closed corpus + per-module flags)
+        shell: bash
+        run: sh scripts/prove-agda.sh 2>&1 | tee agda-verify.log
 
       - name: Trust-base audit
-        run: python3 scripts/audit-trust-base.py
+        run: sh scripts/audit-trust-base.sh
 
       - name: Postulate census (advisory listing for the run log)
         run: |

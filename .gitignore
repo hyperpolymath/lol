@@ -68,7 +68,9 @@ build/
 
 # Agda (interfaces + MAlta/compile artifacts emitted by `agda --safe` checks)
 *.ai
+*.agdai
 *.agda-ir/
+/agda-compile-dir/
 /proofs/verification-results.json
 /proofs/reports/
 
