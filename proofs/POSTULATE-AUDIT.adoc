@@ -139,7 +139,12 @@ Agda has no annotation syntax, so the mechanism is the `ECHIDNA:trust
 manifest equality (`{manifest}`), which is strictly stronger than comments:
 the tag set and the source are checked for exact bi-directional match.
 
-*Phase 4 (new, from issue #4) — CI that type-checks this tree*: **DONE.**
+*Phase 4 (new, from issue #4) — CI that type-checks this tree*: **DONE,
+first green 2026-10-04** (PR #19, job `Agda — proofs/theories`: apt Agda
+2.6.4 + agda-stdlib 1.7 mirror, Foundations/Axioms/theorems all type-checked;
+two proof-level fixes were needed en route — the NaN-guard axiom redesign
+above, and `jsdF` losing its `where` binding because Agda's unifier cannot
+peel a local module, recorded in the PR #19 commit trail).
 Workflow ported from the stranded `standards` job with its two structural
 notes applied (no workflow-level `paths:` filter on `pull_request`;
 fail-closed corpus assertion), and with the type-check made a hard failure
