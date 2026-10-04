@@ -109,28 +109,19 @@ entropy-nonneg {n} d =
 midpointF-comm : ∀ x y → midpointF x y ≡ midpointF y x
 midpointF-comm x y = cong (λ w → w ÷ 2.0) (add-comm x y)
 
+-- Written pointfree-end-to-end (no `where` bindings): every intermediate
+-- type is syntactically the term the δ-unfolding of `jensen-shannon`
+-- produces on both sides, so unification never has to peel a local module.
 js-symmetric : ∀ {n} (p q : Distribution n) →
                jensen-shannon p q ≡ jensen-shannon q p
-js-symmetric {n} p q = cong (λ w → w ÷ 2.0) (trans swapKL rezip)
-  where
-    pv qv : Vec Float n
-    pv = values p
-    qv = values q
-
-    mm : zipWith midpointF pv qv ≡ zipWith midpointF qv pv
-    mm = zipWith-comm midpointF midpointF-comm pv qv
-
-    swapKL : kl-divergenceF pv (zipWith midpointF pv qv)
-               + kl-divergenceF qv (zipWith midpointF pv qv)
-             ≡ kl-divergenceF qv (zipWith midpointF pv qv)
-               + kl-divergenceF pv (zipWith midpointF pv qv)
-    swapKL = add-comm _ _
-
-    rezip : kl-divergenceF qv (zipWith midpointF pv qv)
-              + kl-divergenceF pv (zipWith midpointF pv qv)
-            ≡ kl-divergenceF qv (zipWith midpointF qv pv)
-              + kl-divergenceF pv (zipWith midpointF qv pv)
-    rezip = cong₂ _+_ (cong (kl-divergenceF qv) mm) (cong (kl-divergenceF pv) mm)
+js-symmetric {n} p q = cong (λ w → w ÷ 2.0)
+  (trans (add-comm (kl-divergenceF (values p) (zipWith midpointF (values p) (values q)))
+                   (kl-divergenceF (values q) (zipWith midpointF (values p) (values q))))
+         (cong₂ _+_
+           (cong (kl-divergenceF (values q))
+                 (zipWith-comm midpointF midpointF-comm (values p) (values q)))
+           (cong (kl-divergenceF (values p))
+                 (zipWith-comm midpointF midpointF-comm (values p) (values q)))))
 
 -- ============================================================================
 -- Definitional sanity of the guards (no axioms used)

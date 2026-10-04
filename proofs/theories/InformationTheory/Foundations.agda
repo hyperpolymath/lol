@@ -123,9 +123,15 @@ kl-divergence p q = kl-divergenceF (values p) (values q)
 
 -- Jensen-Shannon divergence on raw vectors: with M = (P + Q)/2,
 -- JSD = (D(P‖M) + D(Q‖M))/2.
+-- The midpoint is written out in both clauses rather than bound by a
+-- `where`: a where-clause of a definition becomes a local module that
+-- unification cannot always unfold through when the importer also matches
+-- under it (live CI evidence: "blocked on _a_" while proving js-symmetric),
+-- so the construction stays fully transparent.
 jsdF : ∀ {n} → Vec Float n → Vec Float n → Float
-jsdF ps qs = ((kl-divergenceF ps m) + (kl-divergenceF qs m)) ÷ 2.0
-  where m = zipWith midpointF ps qs
+jsdF ps qs =
+  (kl-divergenceF ps (zipWith midpointF ps qs)
+   + kl-divergenceF qs (zipWith midpointF ps qs)) ÷ 2.0
 
 -- Jensen-Shannon divergence on distributions.
 jensen-shannon : ∀ {n} → Distribution n → Distribution n → Float
