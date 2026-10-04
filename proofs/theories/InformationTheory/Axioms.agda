@@ -46,7 +46,8 @@ postulate
 
   -- Sign law of correctly-rounded multiplication: a ≥ 0 ∧ b ≤ 0 → −(a·b) ≥ 0.
   -- ECHIDNA:trust ffi-fact :: mul-sign
-  mul-sign : (a b : Float) → 0.0 ≤ᶠ a → b ≤ᶠ 0.0 → 0.0 ≤ᶠ - (a * b)
+  -- a > 0 excludes 0·(−∞) = NaN.
+  mul-sign : (a b : Float) → 0.0 <ᶠ a → b ≤ᶠ 0.0 → 0.0 ≤ᶠ - (a * b)
 
   -- Non-negative floats are closed under correctly-rounded addition.
   -- ECHIDNA:trust ffi-fact :: add-nonneg
