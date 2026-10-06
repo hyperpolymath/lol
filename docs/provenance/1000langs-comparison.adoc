@@ -1,0 +1,240 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// SPDX-FileCopyrightText: 2026 Jonathan D.A. Jewell and Contributors
+= LOL and 1000Langs: provenance comparison
+:toc: preamble
+
+This document records what LOL took from
+https://github.com/ehsanasgari/1000Langs[1000Langs] (Ehsaneddin Asgari,
+Apache-2.0) and what it did not. It is the evidence behind `NOTICE`,
+`REUSE.toml` and the Acknowledgments in `README.adoc`.
+
+== Conclusion
+
+*Mixed: the `meta/` data is derived (204 files copied verbatim); all code is
+independent.*
+
+The crawler code is a reimplementation of the same idea. It targets the same
+kind of sources but contains no code translated from the Python. Every file
+under `meta/` is a byte-identical copy of the same path in 1000Langs and stays
+under Apache-2.0.
+
+== What was compared
+
+[cols="1,3"]
+|===
+|LOL
+|`hyperpolymath/lol` `main` at `0cb776c`: `src/`, `lib/`, `meta/`, `config/`,
+plus the ReScript originals at the root commit `b39c92a`
+
+|1000Langs
+|`ehsanasgari/1000Langs` branch `master`: all 64 commits, 2018-08-28 to
+2019-05-27. Every commit is by Asgari. `LICENSE` is Apache-2.0,
+with Asgari named as holder for 2018 in its appendix. There is no `NOTICE` file.
+|===
+
+`lib/` holds only `lib/rescript.lock`, a build lock with no upstream
+counterpart.
+
+== Data: `meta/` is a verbatim copy
+
+The pairs (git blob SHA, path) for every file under `meta/` were listed on both
+sides with `git ls-tree -r <ref> -- meta` and compared with `diff`. The lists
+are identical: 204 files, made up of 196 flag images under `meta/flags/` and
+the 8 files below. Identical blob SHAs mean identical bytes.
+
+[cols="2,3,2"]
+|===
+|File |What it is |How 1000Langs used it
+
+|`api_volumes.txt`
+|A Digital Bible Platform (dbt.io) volume-list API response
+|Read and rewritten by `bdpAPI/bdpAPI.py` (lines 56 and 132)
+
+|`biblecom.tsv`
+|A table of Bible.com translation URLs, ISO codes and names
+|Read and written by `bibleCOMAPI/biblecomAPI.py` (lines 40 and 86)
+
+|`bibles_list.html`
+|A saved Find-A-Bible page ("Bibles \| Find-A-Bible")
+|Parsed by `metaAPI/metadata.py` (line 27)
+
+|`books2numbers.txt`
+|Book numbers with name and abbreviation variants
+|Book-name lookup
+
+|`ebible.html`
+|A saved eBible.org page ("Bible copyright information")
+|Parsed by `metaAPI/metadata.py` (line 52)
+
+|`massive_par_stat.tsv`
+|Per-language counts from the Massive Parallel corpus
+|Written and read by `metaAPI/metadata.py` (lines 100-101)
+
+|`pngscript_filenames.txt`
+|PNG Scriptures chapter file names (`MAT01.htm` …)
+|Read by `biblecrawler/general_crawler.py` to drive the PNG crawl
+
+|`ISO639-3.tsv`
+|A language table with columns `ISO NAM_LABEL LMP_LON LMP_LAT GENEALOGY`
+|Language metadata
+|===
+
+Caveats on origin:
+
+* `bibles_list.html`, `ebible.html` and `api_volumes.txt` are captures of
+  third-party pages and API output that 1000Langs redistributed.
+* `ISO639-3.tsv` is not SIL's plain code table: the coordinate and genealogy
+  columns suggest an Ethnologue-derived table. 1000Langs does not say where it
+  came from.
+* The flags arrived in 1000Langs in commits "add new changes" (2018-12-15),
+  "Refactoring and improving the codes" (2018-12-18) and "remove unwanted
+  codes" (2018-12-20). None of them names a source.
+
+LOL received all of these under Apache-2.0, and that is the licence recorded in
+`REUSE.toml`. No original copyright holder is asserted for the files above
+whose origin is unestablished.
+
+No LOL source file reads `meta/`; only the `Containerfile` copies it into the
+image.
+
+== Code: independent
+
+=== History
+
+* LOL's root commit `b39c92a` (2026-02-22, Jonathan D.A. Jewell, "Auto-commit:
+  Sync changes") adds the ReScript sources `src/*.res` in bulk.
+* Commits titled "port to AffineScript" followed: `f3c2dea` … `f1e7263`
+  (2026-05-15) and `0cfe49d` (#611, 2026-08-24). These produced the current
+  `src/**/*.affine`.
+* No Python file appears anywhere in LOL's history. Asgari is not an author of
+  any LOL commit, and the GitHub repository is not a fork.
+
+=== Upstream fingerprints, searched in the ReScript originals
+
+The comparison was made against the ReScript at `b39c92a` as well as the
+machine-ported AffineScript, so a port could not hide a translation. In
+`git show b39c92a:<file>` across every `src/*.res`, the following upstream
+identifiers and quirks have *zero* hits:
+
+`1188` (the PNG page count in `general_crawler.py:56`), `SLEEPTIME`
+(`general_crawler.py:30`), `MAT.1` (`bibleCOM.py:49`), `BDPAPl` (the misspelt
+class at `bdpAPI.py:23`), `dbt.io` (`bdpAPI.py:38`), `zfill`, `iterwalk`
+(`biblePngscripturesORG.py:137`), `robot`, `Cysouw`, `dam_id`, `fcbh`,
+`Asgari`, `python`.
+
+There are 3 hits for `xpath`, all for a generic `XPath(string)` selector
+variant in `Crawler.res` and its test, not for upstream XPath expressions. The
+name "1000Langs" appears 10 times, all as the project's name.
+
+=== Per-file comparison
+
+[cols="2,2,1,4"]
+|===
+|LOL file |1000Langs counterpart |Verdict |Evidence on both sides
+
+|`src/Lang1000.affine`
+|`run_crawler/lang1000.py`
+|Inspired
+|Both are CLI entry points. LOL's is AffineScript; upstream's is an
+`argparse` script that drives per-site crawls and writes reports.
+
+|`src/crawlers/Crawler.affine`
+|`biblecrawler/general_crawler.py`
+|Inspired (weakly)
+|LOL: typed request/response structs, a `RateLimiter` (line 91), a
+`RetryPolicy` with backoff (line 113) and its own user agent (line 56).
+Upstream: a `requests` session with a Firefox user agent (line 46) that
+follows "next" links until a page repeats or 1188 pages are seen (line 56),
+noted as "inspired/adapted from Michael Cysouw's crawling code" (line 13).
+
+|`src/crawlers/BibleCloud.affine`
+|`biblecrawler/bibleCLOUD.py`, `bibleCLOUDAPI/biblecloudAPI.py`
+|Inspired (name only)
+|LOL calls the API.Bible v1 JSON API (`api.scripture.api.bible/v1`, lines
+19-37). Upstream scrapes bible.cloud HTML with XPath
+`//span[contains(@class,"v ")]` (lines 159, 163).
+
+|`src/crawlers/BibleCom.affine`
+|`biblecrawler/bibleCOM.py`, `bibleCOMAPI/biblecomAPI.py`
+|Inspired
+|LOL matches CSS-module class `.ChapterContent_verse__uvbXo` (line 44) and a
+`data-usfm` regex (line 136). Upstream uses XPath on `span.verse` (line 187)
+and starts each crawl at `MAT.1` (lines 49, 64).
+
+|`src/crawlers/PngScriptures.affine`
+|`biblecrawler/biblePngscripturesORG.py`, `biblePNGAPI/pngAPI.py`
+|Inspired
+|LOL fetches `/languages` and `/lng/<code>` endpoints (lines 40-41) and parses
+USFM `\v` lines or `data-verse` attributes (lines 131, 169). Upstream
+downloads `<code>_html.zip` archives (`pngAPI.py:66`) and walks them with
+`etree.iterwalk` (line 137).
+
+|`src/crawlers/EBible.affine`
+|`metaAPI/metadata.py` (`getMetaEbible`)
+|Inspired source, independent code
+|LOL downloads and parses USFM text (line 101). Upstream reads only metadata
+from the saved `meta/ebible.html` (line 52) and never fetched eBible text.
+
+|`src/crawlers/FindBible.affine`
+|`metaAPI/metadata.py` (`getMetaFindBible`)
+|Inspired source, independent code
+|LOL treats find.bible as a text source (line 19). Upstream parsed the saved
+`meta/bibles_list.html` for metadata only (line 27).
+
+|`src/api/DigitalBiblePlatform.affine`
+|`bdpAPI/bdpAPI.py`
+|Inspired
+|LOL uses API.Bible v1 with typed `verse` records (line 71). Upstream uses
+dbt.io v2 (`apiversion`, `library/volume`, `library/verse`, lines 38, 130,
+169) with `dam_id` volumes and BBBCCCVVV verse ids.
+
+|`src/utils/Http.affine`, `src/utils/Iso639.affine`,
+`src/utils/Statistics.affine`, `src/verisimdb/*`, `src/cyc/OpenCyc.affine`,
+`src/abi/*.idr`, `src/Lol/ABI`
+|none
+|Independent
+|No counterpart in 1000Langs.
+|===
+
+"Inspired" means the LOL file targets the same site or role as the upstream
+file but shares no logic, identifiers, selectors, endpoints or data layout with
+it. Much of LOL's crawler code is scaffolding rather than a tested crawler.
+
+=== Prose
+
+`README.adoc` was compared with upstream `README.md` line by line after
+normalising whitespace and case (`comm -12`). No line is shared.
+`docs/CITATIONS.adoc` cites LOL and its author only.
+
+== The CHANGELOG claim
+
+`CHANGELOG.adoc` says LOL is a "complete rewrite from Python to ReScript",
+that it "switched from Apache 2.0 to MIT + Palimpsest", and that a 0.0.1
+release was made in 2018 as Python under Apache-2.0. It links
+`github.com/Hyperpolymath/1000Langs`, which returns 404.
+
+The repository's history does not support this:
+
+* there was never Python in LOL;
+* the 2018 release is 1000Langs's history, not LOL's;
+* the code shares nothing with the Python beyond its purpose.
+
+Read accurately, LOL is a fresh implementation of 1000Langs's goal, not a
+rewrite of its code. Because the code was never Apache-2.0, there was no
+licence switch for the code; the `meta/` data was never relicensed and is
+still Apache-2.0.
+
+This PR does not edit the CHANGELOG. Its history entries are the owner's to
+correct.
+
+== Consequences in this repository
+
+* `NOTICE` gives the Apache-2.0 attribution for `meta/`.
+* `LICENSES/Apache-2.0.txt` is the 1000Langs `LICENSE`, byte for byte.
+* `REUSE.toml` licenses `meta/**` as Apache-2.0. It credits Asgari
+  (2018-2019, the years of his `meta/` commits) only for the files he
+  compiled, and names no holder for the third-party captures and
+  unestablished files.
+* Copyright lines that named Asgari on files he did not write now name
+  Jonathan D.A. Jewell. No licence identifier was changed.
+* `README.adoc` credits 1000Langs as the inspiration and points here.

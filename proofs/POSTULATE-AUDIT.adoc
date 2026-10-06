@@ -112,8 +112,10 @@ layers of gate now prevent this class:
 == License note (unchanged)
 
 The Agda corpus files carry `MIT AND LicenseRef-Palimpsest-0.8` (not the
-newer PMPL-1.0-or-later), reflecting attributed third-party origin
-(Ehsaneddin Asgari, 2024). Acceptable as-is.
+newer PMPL-1.0-or-later). Acceptable as-is. Their copyright lines formerly
+named Ehsaneddin Asgari; that was a header error, not a provenance fact. The
+corpus was written in this repository and has no counterpart in 1000Langs
+(see docs/provenance/1000langs-comparison.adoc).
 
 == Remediation ledger
 
