@@ -1,5 +1,5 @@
 -- SPDX-License-Identifier: MIT AND LicenseRef-Palimpsest-0.8
--- SPDX-FileCopyrightText: 2024-2026 Ehsaneddin Asgari and Contributors
+-- SPDX-FileCopyrightText: 2024-2026 Jonathan D.A. Jewell and Contributors
 --
 -- Information Theory — computational foundations
 -- ==============================================

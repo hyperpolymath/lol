@@ -1,0 +1,45 @@
+# SPDX-License-Identifier: MPL-2.0
+# SPDX-FileCopyrightText: 2026 Jonathan D.A. Jewell and Contributors
+#
+# Licensing for files that cannot carry an inline SPDX header.
+# Every file under meta/ is an unmodified copy of the same path in
+# https://github.com/ehsanasgari/1000Langs (identical git blob SHAs), which is
+# licensed Apache-2.0. See NOTICE and docs/provenance/1000langs-comparison.adoc.
+
+version = 1
+
+# Data compiled within 1000Langs by its author.
+[[annotations]]
+path = [
+  "meta/biblecom.tsv",
+  "meta/books2numbers.txt",
+  "meta/massive_par_stat.tsv",
+  "meta/pngscript_filenames.txt",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "2018-2019 Ehsaneddin Asgari"
+SPDX-License-Identifier = "Apache-2.0"
+
+# Captures of third-party material that 1000Langs redistributed:
+# api_volumes.txt is a Digital Bible Platform API response, bibles_list.html is
+# a saved Find-A-Bible page, ebible.html is a saved eBible.org page. They are
+# listed under the licence LOL received them under. Their original copyright
+# holders are not recorded here because they have not been established.
+[[annotations]]
+path = [
+  "meta/api_volumes.txt",
+  "meta/bibles_list.html",
+  "meta/ebible.html",
+]
+precedence = "override"
+SPDX-License-Identifier = "Apache-2.0"
+
+# Redistributed by 1000Langs without a stated source. Original authorship is
+# not established, so no copyright holder is asserted.
+[[annotations]]
+path = [
+  "meta/ISO639-3.tsv",
+  "meta/flags/**",
+]
+precedence = "override"
+SPDX-License-Identifier = "Apache-2.0"

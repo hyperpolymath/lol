@@ -1,6 +1,6 @@
 <!--
 SPDX-License-Identifier: CC-BY-SA-4.0
-SPDX-FileCopyrightText: 2024-2025 Ehsaneddin Asgari and Contributors
+SPDX-FileCopyrightText: 2024-2026 Jonathan D.A. Jewell and Contributors
 -->
 
 # Contributing to 1000Langs
@@ -170,7 +170,7 @@ Then create a pull request on GitHub.
 
 ``` rescript
 // SPDX-License-Identifier: MPL-2.0
-// SPDX-FileCopyrightText: 2024-2025 Ehsaneddin Asgari and Contributors
+// SPDX-FileCopyrightText: 2024-2026 Jonathan D.A. Jewell and Contributors
 
 /**
  * Module documentation goes here.

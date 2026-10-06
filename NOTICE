@@ -1,0 +1,41 @@
+LOL
+Copyright 2024-2026 Jonathan D.A. Jewell and Contributors
+
+This project contains data files derived from 1000Langs
+(https://github.com/ehsanasgari/1000Langs), Copyright (c) 2018-2019
+Ehsaneddin Asgari, licensed under the Apache License, Version 2.0. A copy of
+that licence is in LICENSES/Apache-2.0.txt. 1000Langs has no NOTICE file of
+its own, so there is nothing further to carry over.
+
+What was taken
+--------------
+Every file under meta/ (8 data files and 196 flag images) is an unmodified
+copy of the same path in 1000Langs. They are still under Apache-2.0. Some of
+them are material that 1000Langs itself redistributed: captured web pages
+(meta/bibles_list.html, meta/ebible.html), an API response
+(meta/api_volumes.txt), a language table (meta/ISO639-3.tsv) and flag images
+(meta/flags/). Their original authors are not recorded in 1000Langs and are
+not asserted here. REUSE.toml lists the licensing file by file.
+
+What was not taken
+------------------
+LOL's code contains no code from 1000Langs. It is an independent
+reimplementation of the same idea, written first in ReScript and now in
+AffineScript, rather than translated from the Python. The significant
+differences are:
+
+  * Language and runtime: AffineScript/ReScript on a JS runtime, plus an
+    Idris2 ABI, Zig FFI, Agda proofs, a Julia analysis layer and Nickel
+    configuration, in place of Python with requests, lxml and pandas.
+  * APIs: API.Bible v1 in place of the Digital Bible Platform v2 (dbt.io).
+  * Crawling: endpoint-based fetches per chapter with a rate limiter and
+    retry policy, in place of following "next" links with XPath.
+  * Data model: typed verse and chapter records in place of BBBCCCVVV-keyed
+    TSV files.
+  * Sources: eBible.org and Find.Bible are crawled for text; 1000Langs used
+    them only for metadata.
+  * Added: a VeriSimDB corpus-quality scan and an OpenCyc integration stub.
+  * Removed: the Massive Parallel corpus comparison, per-source crawl reports,
+    repeat-for-coverage loops and metadata refresh.
+
+The evidence for this split is in docs/provenance/1000langs-comparison.adoc.

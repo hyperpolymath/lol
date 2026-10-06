@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT AND LicenseRef-Palimpsest-0.8
-# SPDX-FileCopyrightText: 2024-2025 Ehsaneddin Asgari and Contributors
+# SPDX-FileCopyrightText: 2024-2026 Jonathan D.A. Jewell and Contributors
 #
 # 1000Langs Nickel Configuration
 # ==============================
@@ -82,6 +82,7 @@ let default_source = {
   },
 
   # Source configurations
+  # terms_url: the source's licence or terms page, or "unknown" where not verified.
   sources = {
     bible_cloud = default_source & {
       name = "Bible Cloud",
@@ -90,12 +91,14 @@ let default_source = {
       requires_auth = true,
       auth_type = "api_key",
       auth_env_var = "BIBLE_CLOUD_API_KEY",
+      terms_url = "https://api.bible/terms-and-conditions",
       priority = 1,
     },
     bible_com = default_source & {
       name = "Bible.com (YouVersion)",
       type = "scraper",
       base_url | Contracts.Url = "https://www.bible.com",
+      terms_url = "unknown",
       requires_auth = false,
       crawler_config = default_crawler_config & {
         rate_limit_ms = 2000,
@@ -107,6 +110,7 @@ let default_source = {
       name = "PNG Scriptures",
       type = "download",
       base_url | Contracts.Url = "https://pngscriptures.org",
+      terms_url = "unknown",
       requires_auth = false,
       formats = ["zip", "html"],
       priority = 3,
@@ -115,6 +119,7 @@ let default_source = {
       name = "eBible.org",
       type = "download",
       base_url | Contracts.Url = "https://ebible.org",
+      terms_url = "https://ebible.org/Scriptures/copyright.php",
       requires_auth = false,
       formats = ["usfm", "usx", "html"],
       priority = 4,
@@ -123,6 +128,7 @@ let default_source = {
       name = "Find.Bible",
       type = "api",
       base_url | Contracts.Url = "https://find.bible",
+      terms_url = "unknown",
       requires_auth = false,
       priority = 5,
     },

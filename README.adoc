@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
-// SPDX-FileCopyrightText: 2024-2025 Ehsaneddin Asgari and Contributors
+// SPDX-FileCopyrightText: 2024-2026 Jonathan D.A. Jewell and Contributors
 = LOL
 
 image:https://img.shields.io/badge/License-PMPL--1.0-blue.svg[License: PMPL-1.0,link="https://github.com/hyperpolymath/palimpsest-license"]
@@ -129,6 +129,22 @@ just crawl-all
 |1200+
 |===
 
+== Corpus Data and Translation Licences
+
+LOL crawls translations; it does not redistribute them. The texts it fetches
+belong to their publishers, not to this project.
+
+* Many translations on Bible.com, API.Bible and similar sites are copyrighted
+  and are covered by those sites' terms of service.
+* Do not republish a corpus built with LOL without checking the licence of
+  each translation in it.
+* https://ebible.org[eBible.org] hosts many public-domain and openly licensed
+  translations and is the safest default source.
+
+Each source in `config/main.ncl` carries a `terms_url` field pointing at that
+source's licence or terms page. A value of `"unknown"` means the page has not
+been verified.
+
 == Configuration
 
 Configuration is managed through Nickel for type-safe, validated settings:
@@ -231,7 +247,12 @@ Commercial use with attribution is permitted. Proprietary AI training without at
 
 == Acknowledgments
 
-* Original Python implementation by Ehsaneddin Asgari (LMU Munich)
+* LOL is an independent reimplementation inspired by
+  https://github.com/ehsanasgari/1000Langs[1000Langs] by Ehsaneddin Asgari
+  (LMU Munich), licensed under the Apache License 2.0. LOL contains no code
+  from 1000Langs. The data files under `meta/` are unmodified copies from
+  1000Langs and remain under Apache-2.0; see link:NOTICE[NOTICE] and
+  link:docs/provenance/1000langs-comparison.adoc[the provenance comparison].
 * Bible corpus data from various open Bible translation projects
 * https://github.com/hyperpolymath/echidna[Echidna] for proof verification
 * https://github.com/Hyperpolymath/rhodium-standard-repositories[RSR] for compliance framework
