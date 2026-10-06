@@ -1,0 +1,79 @@
+= LOL: EXPLAINME
+:toc: macro
+:toclevels: 2
+ 
+The receipts behind link:README.adoc[README]: for each claim, its status and the artefact that discharges it, and the reasoning behind the project's design choices.
+ 
+Statuses follow the estate taxonomy: *PROVEN*, *TESTED*, *ASSUMED*, *DESIGNED*, *OPEN*. Every status must name a transcribable artefact (a file, a CI run, a proof); a claim without one is not yet a claim.
+ 
+IMPORTANT: This file was drafted from the README alone. Every row marked _to confirm_ needs its artefact filled in from the repository before this file is merged. `invariant-path doc-claims` grounds factual claims against the file tree and is the intended way to check these rows.
+ 
+toc::[]
+ 
+== Claims and receipts
+ 
+[cols="3,1,3"]
+|===
+| Claim | Status | Artefact
+ 
+| Crawls the five listed sources | _to confirm_ | Crawler modules in `src/`; a recorded run of `just crawl-all`, with date and per-source counts
+| Covers 1,500+ languages | _to confirm_ | Count of distinct language codes in the latest crawl output, with date. The per-source figures in the README are the sources' own statements, not LOL's measurements
+| Aligns translations at verse level | _to confirm_ | Alignment module in `src/`; test cases in `test/`
+| Alignment properties are checked by `just prove` | _to confirm_ | The property statements in `proofs/`, the checker used, and a passing run. Name each property proved
+| Type-safe implementation | _to confirm_ | Which language, and the build that type-checks it. The previous README said both "AffineScript" and "ReScript"; one is wrong
+| Idris2 ABI | _to confirm_ | `lol-abi.ipkg` builds; list the modules and any `believe_me` or postulates
+| Echidna integration for mathematical verification | _to confirm_ | The call site, what is sent to Echidna, and a stored receipt (`echidna.prove.result/1`)
+| OpenCyc semantic grounding | _to confirm_ | The integration module and an example of its output
+| RSR Gold compliance | _to confirm_ | The compliance statement file and the check that produced it
+| Runs under Podman | _to confirm_ | `Containerfile` builds; a recorded run
+| Crawls but does not redistribute translations | _to confirm_ | No corpus text committed to the repository; `.gitignore` covers output paths
+|===
+ 
+== Provenance of the code
+ 
+LOL began as a rewrite of https://github.com/ehsanasgari/1000Langs[1000Langs] by Ehsaneddin Asgari, licensed Apache-2.0.
+ 
+* *Status:* OPEN, pending a file-by-file comparison.
+* *Artefact:* `docs/provenance/1000langs-comparison.adoc`, recording which parts of LOL were translated from 1000Langs and which were written independently.
+* *Consequence:* derived parts carry the Apache-2.0 licence text, Asgari's copyright with the original years, and a statement of changes; independent parts carry Jonathan D.A. Jewell's copyright. Copyright headers that currently read "2024-2025 Ehsaneddin Asgari and Contributors" will be corrected either way.
+ 
+== Why the project is designed this way
+ 
+=== Why start from the Bible
+ 
+It is the most widely translated text, and its chapter-and-verse numbering is an alignment key that already exists in every translation. That made it the fastest route to a skeleton covering the most languages. The choice is about coverage and alignment, not about the content.
+ 
+=== Why an index rather than a store
+ 
+Copying every corpus into LOL would duplicate other people's work, freeze it at the moment of copying, and make LOL responsible for terms it cannot enforce. Holding alignments, provenance and terms, and linking to sources, keeps one authoritative copy of each source where its owners maintain it.
+ 
+=== Why disagreement is kept
+ 
+In mathematics, conflicting results point to an error, and a system such as Echidna arbitrates between provers to reach one verdict. In language and culture, variation is often the thing being preserved: dialects, variant readings and competing translations are evidence, not noise. LOL therefore borrows the provenance and uncertainty tracking from that kind of arbitration, and drops the step that picks a winner.
+ 
+=== Why equivalence is stated
+ 
+Two texts in different languages are never identical; they correspond in some respect, by verse, by concept or by gloss. Saying in which respect makes every alignment a claim with a basis, which can be checked, disputed and refined. This is equivalence treated as identity up to a stated relation, rather than equality of strings.
+ 
+=== Why provenance and consent are part of the data model
+ 
+Preserving a community's language can slide into taking it. The CARE principles for Indigenous data governance and the Local Contexts Traditional Knowledge and Biocultural labels give communities machine-readable terms for their material. Carrying those terms with every item, and honouring them in what LOL serves, is the condition for doing preservation work at all. It is the same idea as the Palimpsest licence: provenance and terms travel with the work.
+ 
+=== The test for adding a source
+ 
+A source is added only if it brings at least one of:
+ 
+* a new alignment key (a new way of saying "these texts correspond");
+* new languages or communities;
+* a new medium, such as speech or handwriting;
+ 
+and comes with clear provenance and terms. This is what keeps LOL from becoming a pile of corpora.
+ 
+== Known inconsistencies to fix
+ 
+* The previous README's quick start cloned `github.com/Hyperpolymath/1000Langs.git` instead of this repository.
+* The previous README described the implementation as both AffineScript and ReScript.
+* Copyright headers attribute 2024-2025 copyright to Ehsaneddin Asgari (see <<Provenance of the code>>).
+* The Apache-2.0 text and notice for any derived code are not yet in the repository.
+* Licence identifiers such as `PMPL-1.0` are not on the SPDX list; whether to use `LicenseRef-` identifiers is an estate-wide decision.
+ 
