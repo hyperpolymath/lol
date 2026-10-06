@@ -1,4 +1,4 @@
-= LOL
+= LOL (Loads of Languages)
 :toc: macro
 :toclevels: 2
 :icons: font
