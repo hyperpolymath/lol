@@ -1,266 +1,136 @@
-// SPDX-License-Identifier: CC-BY-SA-4.0
-// SPDX-FileCopyrightText: 2024-2026 Jonathan D.A. Jewell and Contributors
 = LOL
-
-image:https://img.shields.io/badge/License-PMPL--1.0-blue.svg[License: PMPL-1.0,link="https://github.com/hyperpolymath/palimpsest-license"]
-:toc: preamble
-:toclevels: 3
+:toc: macro
+:toclevels: 2
 :icons: font
-:source-highlighter: rouge
-:experimental:
-
-image:https://img.shields.io/badge/RSR-Gold%20(100%25)-ffd700[RSR Compliance, link=https://github.com/Hyperpolymath/rhodium-standard-repositories]
-image:https://img.shields.io/badge/License-PMPL--1.0-blue.svg[License: PMPL-1.0,link="https://github.com/hyperpolymath/palimpsest-license"]
-image:https://img.shields.io/badge/ReScript-11.x-e84f4f[ReScript]
-image:https://img.shields.io/badge/Podman-Ready-purple[Podman]
-
-**Super-parallel corpus crawler for multilingual NLP and Computational Linguistics research**
-
-A type-safe AffineScript implementation for building massive parallel corpora across 1500+ languages from translation sources.
-
-== Features
-
-* *1500+ Languages* - Crawl parallel texts from multiple Bible corpus sources
-* *Type-Safe* - Built with ReScript for compile-time correctness
-* *Proof-Verified* - Echidna integration for mathematical verification
-* *RSR Gold Compliant* - Follows Rhodium Standard Repository specifications
-* *Semantic Grounding* - OpenCyc integration for common-sense reasoning
-* *Container-Ready* - Podman-native (no Docker required)
-
-== Quick Start
-
-=== Prerequisites
-
-* Node.js 20+
-* Just command runner
-* Nix (recommended) or npm
-* Podman (for containers)
-
-=== Installation
-
-[source,bash]
-----
-# Clone the repository
-git clone https://github.com/Hyperpolymath/1000Langs.git
-cd 1000Langs
-
-# Using Nix (recommended)
-nix develop
-
-# Or using npm directly
-npm install
-----
-
-=== Build & Run
-
-[source,bash]
-----
-# Build the project
-just build
-
-# Run tests
-just test
-
-# Run the crawler
-just crawl-all
-----
-
-== Project Structure
-
-[source]
-----
-1000Langs/
-├── src/
-│   ├── Lang1000.res          # Main entry point
-│   ├── crawlers/             # Web crawler implementations
-│   │   ├── Crawler.res       # Base crawler module
-│   │   ├── BibleCloud.res    # bible.cloud crawler
-│   │   ├── BibleCom.res      # bible.com crawler
-│   │   └── PngScriptures.res # pngscriptures.org crawler
-│   ├── api/                  # API client wrappers
-│   │   └── DigitalBiblePlatform.res
-│   ├── corpus/               # Corpus management
-│   │   └── Alignment.res     # Parallel text alignment
-│   ├── utils/                # Utility modules
-│   │   ├── Iso639.res        # Language code handling
-│   │   └── Statistics.res    # Statistical functions
-│   ├── proofs/               # Mathematical proofs
-│   └── cyc/                  # OpenCyc integration
-├── test/                     # Test suites
-├── proofs/                   # Echidna proof files
-├── config/                   # Nickel configuration
-├── meta/                     # Reference data
-├── .well-known/              # Discovery files
-├── Justfile                  # Task automation
-├── flake.nix                 # Nix development environment
-├── Containerfile             # Podman container definition
-└── rescript.json             # ReScript configuration
-----
-
-== Supported Sources
-
-[cols="1,2,1,1"]
+ 
+*A multilingual alignment index for preserving language and culture, and for connecting people through them.*
+ 
+LOL gathers translations of the same text across more than 1,500 languages and aligns them, so that a sentence in one language can be found beside its counterparts in all the others. It records where every piece of text came from and on what terms. Today it builds that skeleton from Bible translations; it is designed to grow into a shared index of meaning that serves research, localisation, accessibility and the preservation of languages and cultures.
+ 
+toc::[]
+ 
+== Why LOL exists
+ 
+Languages carry cultures. When a language loses speakers, what goes with it is not only vocabulary but a way of dividing up the world. Parallel text, the same content in many languages, is one of the few resources that lets people, tools and researchers move between languages at scale, and it is often the only substantial written material a small language has.
+ 
+LOL starts from the Bible for a practical reason, not a religious one. It is the most widely translated text in existence, and its chapter-and-verse numbering is a ready-made alignment key: verse 3 of chapter 16 means the same place in every language. That makes it the fastest way to build a skeleton covering as many languages as possible. The skeleton is the starting point, not the destination.
+ 
+The project began as a rewrite of Ehsaneddin Asgari's https://github.com/ehsanasgari/1000Langs[1000Langs] super-parallel corpus crawler (LMU Munich), whose work showed how much can be built this way.
+ 
+== What LOL is for
+ 
+[cols="1,3"]
 |===
-|Source |URL |Type |Languages
-
-|Bible Cloud
-|https://bible.cloud
-|API
-|1500+
-
-|Bible.com
-|https://bible.com
-|Scraper
-|2000+
-
-|PNG Scriptures
-|https://pngscriptures.org
-|Download
-|800+
-
-|eBible
-|https://ebible.org
-|Download
-|1000+
-
-|Find.Bible
-|https://find.bible
-|API
-|1200+
+| Use | What LOL provides
+ 
+| Language and culture research
+| Aligned text across 1,500+ languages for comparative, typological, historical and anthropological work.
+ 
+| Localisation and internationalisation
+| A back end that tools such as pandoc and i18n pipelines can ask: here is a phrase, what are its aligned counterparts in language X, and on what terms may they be used?
+ 
+| Accessibility and inclusion
+| Reach into languages that mainstream tools ignore, so documents and interfaces can be offered in a reader's own language.
+ 
+| Archives and document processing
+| Language and script identification keyed to stable language identities, for pipelines such as https://github.com/hyperpolymath/docudactyl[docudactyl]; in return, digitised archives become a source of material for low-resource languages.
 |===
-
-== Corpus Data and Translation Licences
-
-LOL crawls translations; it does not redistribute them. The texts it fetches
-belong to their publishers, not to this project.
-
-* Many translations on Bible.com, API.Bible and similar sites are copyrighted
-  and are covered by those sites' terms of service.
-* Do not republish a corpus built with LOL without checking the licence of
-  each translation in it.
-* https://ebible.org[eBible.org] hosts many public-domain and openly licensed
-  translations and is the safest default source.
-
-Each source in `config/main.ncl` carries a `terms_url` field pointing at that
-source's licence or terms page. A value of `"unknown"` means the page has not
-been verified.
-
-== Configuration
-
-Configuration is managed through Nickel for type-safe, validated settings:
-
-[source,bash]
+ 
+== Principles
+ 
+. *An index, not a warehouse.* LOL holds alignments, provenance and terms of use, and fetches or links to source text when it is needed. It does not try to copy every corpus into itself.
+. *Provenance and consent travel with the data.* Every item records its source, its licence or terms, and any community conditions on its use. LOL will not serve material for a use its terms exclude.
+. *Disagreement is part of the record.* When sources differ, as dialects, variant readings and rival translations do, LOL keeps every version with its source. It does not vote one winner and discard the rest.
+. *Equivalence is stated, not assumed.* "These two texts correspond" always says in what sense: same verse, same concept, same gloss. Correspondence is a claim with a basis, not a fact about strings.
+. *Sources earn their place.* A new source is added only if it brings a new alignment key, new languages or communities, or a new medium (such as speech), together with clear provenance and terms. More of the same text under the same key adds bulk, not reach.
+ 
+== Current state
+ 
+LOL is a crawler and alignment toolkit. It currently draws on these sources (language counts as stated by each source):
+ 
+[cols="2,1,2"]
+|===
+| Source | Languages (approx.) | Access
+ 
+| https://bible.cloud[Bible Cloud] | 1,500+ | API
+| https://bible.com[Bible.com] | 2,000+ | Scraper
+| https://pngscriptures.org[PNG Scriptures] | 800+ | Download
+| https://ebible.org[eBible] | 1,000+ | Download
+| https://find.bible[Find.Bible] | 1,200+ | API
+|===
+ 
+What is built, tested and proved, and the evidence for each claim, is recorded in link:EXPLAINME.adoc[EXPLAINME].
+ 
+== Data and rights
+ 
+LOL *crawls* translations; it does not redistribute them. Many translations, particularly on commercial Bible sites, are under copyright and covered by those sites' terms of service. Before publishing any corpus built with LOL, check the licence of each translation in it.
+ 
+https://ebible.org[eBible.org] hosts many public-domain and openly licensed translations, and the https://github.com/BibleNLP/ebible[eBible corpus] records the licence of each one. It is the safest default source.
+ 
+Material from Indigenous and other communities is subject to their own authority over it. LOL is adopting the https://localcontexts.org[Local Contexts] Traditional Knowledge and Biocultural labels and the CARE principles for Indigenous data governance, so that community terms are machine-readable and respected (see <<roadmap>>).
+ 
+== Quick start
+ 
+Prerequisites: Node.js 20+, https://github.com/casey/just[just], Podman; Nix optional.
+ 
+[source,sh]
 ----
-# Validate configuration
-just nickel-check
-
-# Export to JSON
-just nickel-export
-
-# Show resolved config
-just nickel-show
+git clone https://github.com/hyperpolymath/LOL.git
+cd LOL
+ 
+just build        # compile
+just test         # run the test suites
+just prove        # run the proof checks (see EXPLAINME for what they cover)
+just crawl-all    # run every crawler
 ----
-
-See `config/main.ncl` for all configuration options.
-
-== Testing
-
-[source,bash]
-----
-# Run all tests
-just test
-
-# Run with coverage
-just test-coverage
-
-# Run proof verification
-just prove
-----
-
-== Proof Verification
-
-This project integrates with https://github.com/hyperpolymath/echidna[Echidna] for mathematical proof verification:
-
-* Data integrity proofs
-* Alignment correctness verification
-* Statistical property validation
-* Type safety guarantees
-
-[source,bash]
-----
-# Run all proofs
-just prove
-
-# Check specific proof
-just prove-check alignment_correctness
-----
-
-== Container Deployment
-
-Uses Podman (not Docker) for container operations:
-
-[source,bash]
-----
-# Build container
-just container-build
-
-# Run container
-just container-run
-
-# Deploy with volume mounts
-just container-dev
-----
-
-== RSR Compliance
-
-This project targets *Gold (100%)* compliance with the https://github.com/Hyperpolymath/rhodium-standard-repositories[Rhodium Standard Repository] specification:
-
-[source,bash]
-----
-# Run compliance audit
-just rsr-audit
-
-# Generate HTML report
-just rsr-audit-html
-----
-
-== Contributing
-
-See link:.github/CONTRIBUTING.md[.github/CONTRIBUTING.md] for guidelines.
-
-This project uses the *Tri-Perimeter Contribution Framework (TPCF)*:
-
-* *Perimeter 1 (Core)*: Maintainers only
-* *Perimeter 2 (Expert)*: Trusted contributors
-* *Perimeter 3 (Community)*: Open contributions
-
-== License
-
-Dual licensed under:
-
-* Palimpsest-MPL-1.0 License
-* Palimpsest License v0.8
-
-See link:LICENSE.txt[LICENSE.txt] for details.
-
-Commercial use with attribution is permitted. Proprietary AI training without attribution is prohibited.
-
-== Acknowledgments
-
-* LOL is an independent reimplementation inspired by
-  https://github.com/ehsanasgari/1000Langs[1000Langs] by Ehsaneddin Asgari
-  (LMU Munich), licensed under the Apache License 2.0. LOL contains no code
-  from 1000Langs. The data files under `meta/` are unmodified copies from
-  1000Langs and remain under Apache-2.0; see link:NOTICE[NOTICE] and
-  link:docs/provenance/1000langs-comparison.adoc[the provenance comparison].
-* Bible corpus data from various open Bible translation projects
-* https://github.com/hyperpolymath/echidna[Echidna] for proof verification
-* https://github.com/Hyperpolymath/rhodium-standard-repositories[RSR] for compliance framework
-
-== See Also
-
-* link:.github/CONTRIBUTING.md[Contributing Guide]
-* link:CODE_OF_CONDUCT.adoc[Code of Conduct]
-* link:SECURITY.md[Security Policy]
-* link:CHANGELOG.adoc[Changelog]
-* link:FUTURE.adoc[Future Roadmap]
+ 
+== Layout
+ 
+[cols="1,3"]
+|===
+| Path | Contents
+ 
+| `src/` | Crawlers (Bible Cloud, Bible.com, PNG Scriptures and others), alignment, language-code utilities
+| `test/` | Test suites
+| `proofs/` | Proof checks for alignment properties
+| `config/` | Source and crawl configuration
+| `lol-abi.ipkg` | Idris2 ABI package
+|===
+ 
+[[roadmap]]
+== Roadmap
+ 
+Items are marked with the estate's statuses: DESIGNED means specified but not built; OPEN means not yet designed.
+ 
+[cols="3,1"]
+|===
+| Step | Status
+ 
+| Key every item to a https://glottolog.org[Glottolog] language identity (and ISO 639-3 where one exists) | DESIGNED
+| Adopt https://cldf.clld.org[CLDF] (Cross-Linguistic Data Formats) as the exchange format, so LOL links to Lexibank, Grambank, WALS and Concepticon instead of copying them | DESIGNED
+| Add provenance, licence and Local Contexts label fields to the data model, before any new source is added | DESIGNED
+| First non-religious alignment key: the Universal Declaration of Human Rights in its many translations | DESIGNED
+| Concept-level alignment via https://concepticon.clld.org[Concepticon] concept sets, alongside verse-level alignment | OPEN
+| Cultural and environmental context via https://d-place.org[D-PLACE], keyed to the same language identities | OPEN
+| Locale data from Unicode CLDR, so LOL can serve as a localisation back end | OPEN
+| Speech: links to Mozilla Common Voice and to endangered-language archives, respecting their access terms | OPEN
+| Align with Palimpsest and the Content Provenance Protocol, so provenance and consent are carried in a standard form | OPEN
+|===
+ 
+== Related work
+ 
+* Ehsaneddin Asgari, https://github.com/ehsanasgari/1000Langs[1000Langs] (Apache-2.0): the crawler LOL was rewritten from.
+* Mayer and Cysouw, https://aclanthology.org/L14-1215/[Creating a massively parallel Bible corpus] (LREC 2014).
+* Christodoulopoulos and Steedman, https://github.com/christos-c/bible-corpus[A massively parallel corpus: the Bible in 100 languages] (Edinburgh).
+* McCarthy et al., https://aclanthology.org/2020.lrec-1.352[The Johns Hopkins University Bible Corpus: 1600+ tongues for typological exploration] (LREC 2020).
+* Akerman et al., https://arxiv.org/abs/2304.09919[The eBible Corpus] (2023).
+* https://d-place.org[D-PLACE]: cultural, linguistic and environmental diversity, keyed to Glottolog.
+ 
+== Credits and licence
+ 
+LOL is by Jonathan D.A. Jewell. It began as a rewrite of https://github.com/ehsanasgari/1000Langs[1000Langs] by Ehsaneddin Asgari (LMU Munich), licensed under Apache-2.0; how much of LOL derives from that code is being documented in link:EXPLAINME.adoc[EXPLAINME], and any derived parts keep their Apache-2.0 terms and notices.
+ 
+LOL's own work is dual-licensed under the Palimpsest-MPL-1.0 License and the Palimpsest License v0.8. Commercial use with attribution is permitted; proprietary AI training without attribution is prohibited. See link:LICENSE[LICENSE].
+ 
+Source texts remain under their own licences and terms; see <<Data and rights>>.
+ 
