@@ -1,0 +1,216 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// SPDX-FileCopyrightText: 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+= AFFIRMATION — LOL, as of 2026-10-07
+Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+:toc:
+:toclevels: 2
+:icons: font
+:std-docs: https://github.com/hyperpolymath/standards/blob/main/docs
+
+_What we affirm was true and checkable at one commit. Profile A (evidential) of
+the link:{std-docs}/AFFIRMATION-STANDARD.adoc[AFFIRMATION authoring standard]._
+
+== What this is, and how it works
+
+A dated, signed record of what can honestly be claimed about *LOL* at the
+commit in <<verifiable-anchor>>. LOL is a parallel-corpus crawler and alignment
+index across 1,500+ languages, starting from Bible translations, being ported
+from ReScript to AffineScript. Every claim below comes from a command run in the
+session that wrote this file. Where a status document disagreed with a live run,
+the live run wins and the document is named in <<outstanding>>.
+
+== The epistemic contract
+
+This is the authors' best belief at the timestamp below, not a guarantee. The
+only guarantee is no intentional overclaim.
+
+You may conclude: each claim was produced by running the named command at the
+anchor commit in this session.
+
+You may *not* conclude: that anything is true at a later commit, or that
+anything unlisted passes. *Silence is not a claim.* You are invited to refute
+any line here with a counter-example or a failing run.
+
+[#verifiable-anchor]
+== Verifiable anchor
+
+[cols="1,3",options="header"]
+|===
+| Field | Value
+| Project | LOL
+| Repo | `hyperpolymath/lol`
+| Branch | `main`
+| Commit (HEAD) | `eb8e1d0d8772ff10953d1198b8e44e7dad7c46bc`
+| Permalink | https://github.com/hyperpolymath/lol/tree/eb8e1d0d8772ff10953d1198b8e44e7dad7c46bc
+| Verified (UTC) | `2026-10-07T10:31:09Z`
+| Working-tree delta at verification
+| `clean` (`git status --porcelain` printed nothing before the checks; this
+  file was written afterwards).
+| Toolchain
+| Agda 2.7.0.1 with Debian `agda-stdlib` 2.1-4; Nickel 1.17.0 (rev db7978e);
+  REUSE 5.0.2; AffineScript 0.1.1 (local build, with a positive control; see <<outstanding>>); just 1.56.0; git 2.47.3; `/bin/sh` = dash; Debian 13 on WSL2.
+| Affirmed by | Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+|===
+
+[IMPORTANT]
+====
+Never anchor to a tag. If you are reading this at a later commit, the claims
+may have drifted. Re-run <<reproduce>> and write a fresh affirmation; do not
+trust a stale one.
+====
+
+== Companion documents and repo metadata (cross-check)
+
+* `README.adoc`: the aspirational claims this file is measured against.
+* `EXPLAINME.adoc`: the mechanism. *Contradiction:* line 38 says the
+  "2024-2025 Ehsaneddin Asgari and Contributors" headers "will be corrected".
+  That correction already landed in #21. The string now survives only in that
+  sentence (`git grep -n 'Ehsaneddin Asgari and Contributors'` prints one hit,
+  `EXPLAINME.adoc:38`). This file is right on that point and EXPLAINME is stale.
+* `NOTICE`, `REUSE.toml`, `LICENSES/Apache-2.0.txt`,
+  `docs/provenance/1000langs-comparison.adoc`: the 1000Langs attribution
+  record.
+* `proofs/trust-base.json`: the declared postulate quarantine.
+
+== The honest state (one breath)
+
+The Agda information-theory proofs type-check under their enforced flags, and the
+trust base matches its declaration of 5 quarantined postulates. The
+1000Langs attribution files are present. The project's build, test, lint and
+typecheck recipes cannot run on an estate toolchain, because every one of them
+calls Deno, npx/ReScript or vitest. The `.affine` sources do not parse as
+AffineScript: they still hold ReScript syntax.
+The Nickel configuration does not evaluate. The repository is not REUSE-compliant. Nothing here affirms that the crawler
+runs.
+
+=== What is solid (and how we checked)
+
+[cols="2,1,3",options="header"]
+|===
+| Claim | Status | Evidence (command, and what it printed)
+
+| The Agda proofs type-check under the enforced flags
+| affirmed
+| `HOME=<scratch> AGDA_STDLIB_DIR=/usr/share/agda-stdlib/src sh scripts/prove-agda.sh`
+  checked 3 modules (`InformationTheory.agda` and `InformationTheory/Axioms.agda`
+  with `--without-K`, `InformationTheory/Foundations.agda` with `--safe`) and
+  printed "All Agda proofs type-checked cleanly under the enforced flags.",
+  exit 0.
+
+| The trust base matches its declaration
+| affirmed
+| `sh scripts/audit-trust-base.sh` printed "trust-base audit: OK — 5
+  postulate(s) in quarantine (conjecture=2 ffi-fact=3 ), 1 safe module(s), 3
+  .agda file(s) total", exit 0.
+
+| The 1000Langs data under `meta/` carries Apache-2.0 attribution
+| affirmed
+| `NOTICE`, `LICENSES/Apache-2.0.txt` and
+  `docs/provenance/1000langs-comparison.adoc` exist. `REUSE.toml` annotates the
+  `meta/` files as Apache-2.0, holder "2018-2019 Ehsaneddin Asgari" where
+  established.
+
+| The recipe list parses
+| affirmed
+| `just --list`, exit 0.
+
+| The crawler builds, its tests pass, it lints clean
+| *not checked*
+| `just build`, `just test`, `just lint` and `just typecheck` call `deno task`,
+  `npx rescript` and `deno run npm:vitest`. Deno and ReScript are banned
+  estate-wide and were not run.
+|===
+
+=== The honest nuance you must not lose
+
+* "The proofs type-check" covers 3 Agda modules. Two of them are deliberately
+  checked without `--safe` because they hold the 5 postulates. Two of those
+  postulates (`kl-nonneg`, `js-bounded`) are classed *conjecture*, not proved
+  facts. Results that depend on them are conditional.
+* The Agda check needed two overrides from the `scripts/prove-agda.sh`
+  defaults. Run as shipped, with the real `HOME`, it exits 1 with
+  `mkdir: cannot create directory '~/.agda/libraries': File exists`. The script
+  treats `~/.agda/libraries` as a directory, but Agda reads it as a file. With a
+  scratch `HOME` but no `AGDA_STDLIB_DIR`, it refuses with "stdlib probe failed".
+  The pass above is the third run, with the stdlib passed explicitly.
+* The 200 `meta/flags/*.png` images carry a licence annotation but no copyright
+  holder. That is deliberate: their original authorship is not established
+  (see NOTICE), and no holder was invented.
+
+=== Known-incomplete but honestly fenced
+
+* Postulated lemmas are fenced by `scripts/audit-trust-base.sh`. A postulate
+  outside `InformationTheory/Axioms.agda`, or a count that differs from
+  `proofs/trust-base.json`, fails it.
+* A module that declares `--safe` cannot carry a postulate: Agda rejects it at
+  check time.
+
+[#outstanding]
+=== Outstanding / weak / refuted (no spin)
+
+* *Refuted: "the configuration is usable".* `nickel export config/main.ncl`
+  exits 1 with `error: missing definition for 'environment'` (the field is
+  declared at `config/main.ncl:60`).
+* *Refuted: "the repository is licence-clean".* `reuse lint` exits 1. It
+  reports missing licence texts for MPL-2.0, CC-BY-SA-4.0, MIT and
+  LicenseRef-Palimpsest-0.8, a bad licence identifier
+  (LicenseRef-Palimpsest-0.8), and copyright information on only 106 of 349
+  files.
+* *Refuted: "the source is AffineScript".* `affinescript check` exits 124 on
+  every one of the 21 `.affine` files under `src/` and `test/`, each with
+  "parse error: Syntax error". 16 of the 21 contain ReScript constructs, for
+  example `module Fetch = {` and `@val external fetch: … = "fetch"` in
+  `src/utils/Http.affine`. The parser reports each error at the `module X;`
+  line, but that line is not the cause. A minimal `module Foo;` file with a
+  function passes (`Type checking passed`), and the same file with one
+  ReScript `module Fetch = { … }` block fails with the identical
+  misattributed location. Both runs used AffineScript 0.1.1, a local build.
+  The "port to AffineScript" therefore renamed the files but did not convert
+  their syntax.
+* *Unrunnable on the estate toolchain:* `build`, `test`, `test-unit`,
+  `test-proofs`, `lint`, `format-check`, `typecheck` and `verify` all invoke
+  Deno, npx or ReScript.
+* *Stale document:* `EXPLAINME.adoc:38`, as above.
+* *Not verified this session:* the CI state of the anchor commit, and whether
+  any crawler reaches its source site.
+
+[#reproduce]
+== Reproduce it yourself
+
+[source,bash]
+----
+git clone https://github.com/hyperpolymath/lol && cd lol
+git checkout eb8e1d0d8772ff10953d1198b8e44e7dad7c46bc
+sh scripts/audit-trust-base.sh            # trust-base audit: OK — 5 postulate(s) …, exit 0
+mkdir -p /tmp/agdahome
+HOME=/tmp/agdahome AGDA_STDLIB_DIR=/usr/share/agda-stdlib/src \
+  sh scripts/prove-agda.sh                # All Agda proofs type-checked cleanly …, exit 0
+nickel export config/main.ncl             # error: missing definition for `environment`, exit 1
+reuse lint                                # not compliant with REUSE 3.3, exit 1
+git grep -n 'Ehsaneddin Asgari and Contributors'   # EXPLAINME.adoc:38 only
+affinescript check src/utils/Http.affine   # parse error: Syntax error, exit 124
+----
+
+== One-line characterisation (quote this)
+
+> LOL's proof layer checks and its 1000Langs attribution is recorded, but at
+> this commit its `.affine` crawler sources are still ReScript syntax and do not
+> parse, its Nickel config does not evaluate, and it is not REUSE-compliant.
+
+== Joint attestation
+
+We, the undersigned, assert that *to the best of our joint belief at the
+timestamp above, every claim in this file is true and was checked as described*.
+There is no intentional overclaim, and the open gaps are stated rather than
+hidden.
+
+* *Engineering party (AI):* `claude-opus-5-5` (Claude Code). It ran the checks
+  recorded here between 2026-10-07T10:21Z and 2026-10-07T10:31:09Z, and stands
+  behind the wording above as a faithful report of those runs.
+* *Owner / maintainer:* Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>, who
+  _signs by committing or merging this file with `-S`. The signature over this
+  content, with the anchor commit above as its parent, is the cryptographic form
+  of this affirmation._
+
+_If the anchor SHA does not match the parent of the commit that introduced this
+file, the file is a *draft* and must be read as one._
