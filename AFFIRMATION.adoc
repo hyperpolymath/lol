@@ -48,8 +48,7 @@ any line here with a counter-example or a failing run.
   file was written afterwards).
 | Toolchain
 | Agda 2.7.0.1 with Debian `agda-stdlib` 2.1-4; Nickel 1.17.0 (rev db7978e);
-  REUSE 5.0.2; AffineScript 0.1.1 (see <<outstanding>> for why its result is
-  not used); just 1.56.0; git 2.47.3; `/bin/sh` = dash; Debian 13 on WSL2.
+  REUSE 5.0.2; AffineScript 0.1.1 (local build, with a positive control; see <<outstanding>>); just 1.56.0; git 2.47.3; `/bin/sh` = dash; Debian 13 on WSL2.
 | Affirmed by | Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 |===
 
@@ -79,8 +78,9 @@ The Agda information-theory proofs type-check under their enforced flags, and th
 trust base matches its declaration of 5 quarantined postulates. The
 1000Langs attribution files are present. The project's build, test, lint and
 typecheck recipes cannot run on an estate toolchain, because every one of them
-calls Deno, npx/ReScript or vitest. The Nickel configuration does not evaluate.
-The repository is not REUSE-compliant. Nothing here affirms that the crawler
+calls Deno, npx/ReScript or vitest. The `.affine` sources do not parse as
+AffineScript: they still hold ReScript syntax.
+The Nickel configuration does not evaluate. The repository is not REUSE-compliant. Nothing here affirms that the crawler
 runs.
 
 === What is solid (and how we checked)
@@ -156,13 +156,17 @@ runs.
   LicenseRef-Palimpsest-0.8, a bad licence identifier
   (LicenseRef-Palimpsest-0.8), and copyright information on only 106 of 349
   files.
-* *Not established: the AffineScript port parses.* `affinescript check` on
-  each of the 21 `.affine` files under `src/` and `test/` exits 124 with
-  "parse error" at line 4 (`module X;`). This does *not* refute the port. The
-  same binary rejects its own stdlib's `module SafeHex;` with the same error,
-  while it accepts `examples/comprehensive_test.affine`. The instrument is the
-  suspect: it was built from a non-`main` branch of the compiler. The port's
-  state is therefore unknown.
+* *Refuted: "the source is AffineScript".* `affinescript check` exits 124 on
+  every one of the 21 `.affine` files under `src/` and `test/`, each with
+  "parse error: Syntax error". 16 of the 21 contain ReScript constructs, for
+  example `module Fetch = {` and `@val external fetch: … = "fetch"` in
+  `src/utils/Http.affine`. The parser reports each error at the `module X;`
+  line, but that line is not the cause. A minimal `module Foo;` file with a
+  function passes (`Type checking passed`), and the same file with one
+  ReScript `module Fetch = { … }` block fails with the identical
+  misattributed location. Both runs used AffineScript 0.1.1, a local build.
+  The "port to AffineScript" therefore renamed the files but did not convert
+  their syntax.
 * *Unrunnable on the estate toolchain:* `build`, `test`, `test-unit`,
   `test-proofs`, `lint`, `format-check`, `typecheck` and `verify` all invoke
   Deno, npx or ReScript.
@@ -184,13 +188,14 @@ HOME=/tmp/agdahome AGDA_STDLIB_DIR=/usr/share/agda-stdlib/src \
 nickel export config/main.ncl             # error: missing definition for `environment`, exit 1
 reuse lint                                # not compliant with REUSE 3.3, exit 1
 git grep -n 'Ehsaneddin Asgari and Contributors'   # EXPLAINME.adoc:38 only
+affinescript check src/utils/Http.affine   # parse error: Syntax error, exit 124
 ----
 
 == One-line characterisation (quote this)
 
 > LOL's proof layer checks and its 1000Langs attribution is recorded, but at
-> this commit its crawler cannot be built or tested on the estate toolchain, its
-> Nickel config does not evaluate, and it is not REUSE-compliant.
+> this commit its `.affine` crawler sources are still ReScript syntax and do not
+> parse, its Nickel config does not evaluate, and it is not REUSE-compliant.
 
 == Joint attestation
 
